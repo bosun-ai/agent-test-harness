@@ -1,0 +1,17 @@
+{
+  "agents": [
+    {
+      "name": "example",
+      "setup_script": "echo 'Set up example agent'",
+      "command": "echo 'Run example agent'"
+    }
+  ],
+  "repositories": [
+    {
+      "name": "derrick",
+      "url": "https://github.com/bosun-ai/derrick.git",
+      "setup_script": "apt-get install -y build-essential curl;curl https://sh.rustup.rs -sSf | bash -s -- -y;echo 'source $HOME/.cargo/env' >> $HOME/.bashrc",
+      "coverage_tool_command": "cargo tarpaulin"
+    }
+  ]
+}

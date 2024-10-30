@@ -2,7 +2,7 @@ import requests
 import subprocess
 import secrets
 import os
-LLM_PROXY_COMMAND = "amsterdam-prompt-gateway"
+LLM_PROXY_COMMAND = "amsterdam"
 
 # LLMProxy is a class that proxies requests to the LLM proxy service
 class LLMProxy:

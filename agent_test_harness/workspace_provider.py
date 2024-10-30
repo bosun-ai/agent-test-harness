@@ -1,13 +1,13 @@
 # WorkspaceProvider is a class that provides access to workspaces through the workspace-provider utility
 #  
 # The utility is an executable with the following usage:
-#   Usage: workspace-provider --provisioning-mode <PROVISIONING_MODE> --workspace-config-path <WORKSPACE_CONFIG_PATH> --server-mode <SERVER_MODE> 
+#   Usage: derrick --provisioning-mode <PROVISIONING_MODE> --workspace-config-path <WORKSPACE_CONFIG_PATH> --server-mode <SERVER_MODE> 
 
 import subprocess
 import requests
 import json
 
-WORKSPACE_PROVIDER_COMMAND = "workspace-provider --provisioning-mode docker --workspace-config-path workspace_config.json --server-mode http"
+WORKSPACE_PROVIDER_COMMAND = "derrick --provisioning-mode docker --workspace-config-path workspace_config.json --server-mode http"
 
 class WorkspaceProvider:
     process: subprocess.Popen
