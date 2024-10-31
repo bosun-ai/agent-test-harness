@@ -1,5 +1,5 @@
 import json
-
+import yaml
 from agent_test_harness.agent_test_harness import AgentTestHarness
 
 def main():
@@ -10,8 +10,8 @@ def main():
     print(json.dumps(results, indent=2))
 
 def read_config():
-    with open("config.json", "r") as file:
-        return json.load(file)
+    with open("config.yaml", "r") as file:
+        return yaml.safe_load(file)
 
 if __name__ == "__main__":
     main()
