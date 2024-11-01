@@ -2,11 +2,11 @@ agents:
   - name: example
     setup_script: echo 'Set up example agent'
     command: echo 'Run example agent'
-  - name: fluyt
-    setup_script: |
-      curl -sL https://bosun-public.s3.eu-central-1.amazonaws.com/fluyt-cli -o /usr/local/bin/fluyt;
-      chmod +x /usr/local/bin/fluyt
-    command: echo 'Run fluyt agent'
+  # - name: fluyt
+  #   setup_script: |
+  #     curl -sL https://bosun-public.s3.eu-central-1.amazonaws.com/fluyt-cli -o /usr/local/bin/fluyt;
+  #     chmod +x /usr/local/bin/fluyt
+  #   command: echo 'Run fluyt agent'
 
 repositories:
   - name: todolist
