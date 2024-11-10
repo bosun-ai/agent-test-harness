@@ -9,6 +9,7 @@ class AgentTestHarness:
     def __init__(self, config: dict):
         self.config = config
         self.llm_proxy = LLMProxy(config)
+        self.llm_proxy.run()
 
     def benchmark_agents(self):
         benchmark_results = []
@@ -27,7 +28,7 @@ class AgentTestHarness:
         return benchmark_results
 
     def benchmark_agent_on_repository(self, agent: dict, repository: dict):
-        repository_name = repository["url"].split("/")[-1]
+        repository_name = repository["name"]
         name = f"{agent["name"]}-{repository_name}"
 
         benchmark_result = {
@@ -37,11 +38,13 @@ class AgentTestHarness:
 
         setup_script = repository["setup_script"] + "\n# Agent setup script:\n\n" + agent["setup_script"]
 
-        workspace_provider = WorkspaceProvider(name, repository["url"], setup_script)
+        workspace_provider = WorkspaceProvider(name, repository, setup_script)
         workspace_provider.run()
 
+        print("Initializing agent test benchmark...")
         agent_test_benchmark = AgentTestBenchmark(self.llm_proxy, workspace_provider, agent, repository)
 
+        print("Running agent test benchmark...")
         benchmark_result["results"] = agent_test_benchmark.run()
 
         return benchmark_result

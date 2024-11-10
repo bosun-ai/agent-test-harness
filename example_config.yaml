@@ -12,11 +12,16 @@ repositories:
   - name: todolist
     url: https://github.com/bosun-ai/todolist.git
     setup_script: |
+      echo "Set up todolist repository" > /tmp/setup.log;
+      apt update;
+      apt install -y curl;
       curl -sL https://deb.nodesource.com/setup_20.x -o nodesource_setup.sh;
       bash nodesource_setup.sh;
       apt install -y nodejs;
+      echo "Installed nodejs" >> /tmp/setup.log;
       cd /todolist;
-      npm install
+      npm install;
+      echo "Installed npm packages" >> /tmp/setup.log;
     coverage_tool_command: |
       cd /todolist;
       npm test -- --coverage --watchAll=false --bail=1 -u && cat coverage/lcov.info

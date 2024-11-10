@@ -1,3 +1,4 @@
+import json
 import requests
 import subprocess
 import secrets
@@ -28,14 +29,21 @@ class LLMProxy:
         env = os.environ.copy()
         env["ADMIN_TOKEN"] = self.admin_token
         env["PORT"] = "50081"
+        env["DATABASE_URL"] = "sqlite://tmp/llm_proxy.db"
 
-        self.process = subprocess.Popen(LLM_PROXY_COMMAND, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env)
+        print("Starting LLM proxy...")
+        self.process = subprocess.Popen(LLM_PROXY_COMMAND,
+                                        shell=True,
+                                        # stdout=subprocess.PIPE,
+                                        # stderr=subprocess.PIPE,
+                                        env=env)
         self.running = True
         events.add_main_exit_event_listener(self.stop)
 
         # wait for the LLM proxy to start by requesting the health endpoint
         while True:
             time.sleep(0.2)
+            print("Checking if LLM proxy is running...")
             try:
                 response = self._request("GET", "health")
                 match response.status_code:
@@ -75,10 +83,25 @@ class LLMProxy:
         self.process.terminate()
 
     def _request(self, method: str, path: str, **kwargs):
-        return requests.request(method, f"{self.base_url}/{path}", **kwargs)
+        response = requests.request(method, f"{self.base_url}/{path}", **kwargs)
+
+        if response.status_code >= 400:
+            raise Exception(f"LLM proxy returned status code {response.status_code}: {response.text}")
+        
+        try:
+            response.json()
+        except json.JSONDecodeError:
+            raise Exception(f"LLM proxy returned status code {response.status_code}: {response.text}")
+        
+        return response
 
     def create_project(self, project_name: str):
-      response = self._request("POST", "admin/v1/projects", headers={"Authorization": f"Bearer {self.admin_token}"}, json={"name": project_name})
+      print(f"Creating project {project_name}...")
+      response = self._request("POST", "admin/v1/projects", headers={"Authorization": f"Bearer {self.admin_token}"}, json={
+          "name": project_name,
+          "description": "Created by agent test harness"
+        })
+      print(f"Project created: {response.json()}")
       return response.json()
     
     def get_metrics(self, project_token: str):

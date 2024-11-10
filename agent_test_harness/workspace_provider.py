@@ -11,7 +11,7 @@ import json
 
 from .events import events
 
-WORKSPACE_PROVIDER_COMMAND = "derrick --provisioning-mode docker --workspace-config-path workspace_config.json --server-mode http"
+WORKSPACE_PROVIDER_COMMAND = "derrick --provisioning-mode docker --workspace-config-path tmp/workspace_config.json --server-mode http"
 
 class WorkspaceProvider:
     process: subprocess.Popen
@@ -19,11 +19,10 @@ class WorkspaceProvider:
     base_url: str = "http://localhost:50080"
     running: bool
 
-    def __init__(self, name: str, repository: str, setup_script: str):
-        repo_name = repository.split("/")[-1]
+    def __init__(self, name: str, repository: dict, setup_script: str):
         self.workspace_config = {
             "name": name,
-            "repositories": [{"url": repository, "path": "/" + repo_name}],
+            "repositories": [{"url": repository["url"], "path": "/" + repository["name"]}],
             "setup_script": setup_script
         }
         self.process = None
@@ -31,10 +30,14 @@ class WorkspaceProvider:
 
     def run(self):
         # TODO: Write the workspace config to a file and pass the path to the workspace-provider command
-        with open("workspace_config.json", "w") as f:
+        with open("tmp/workspace_config.json", "w") as f:
             json.dump(self.workspace_config, f)
         
-        self.process = subprocess.Popen(WORKSPACE_PROVIDER_COMMAND, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        self.process = subprocess.Popen(WORKSPACE_PROVIDER_COMMAND,
+                                        shell=True,
+                                        stdout=subprocess.PIPE,
+                                        stderr=subprocess.PIPE
+                                        )
         self.running = True
         events.add_main_exit_event_listener(self.stop)
 
@@ -42,7 +45,6 @@ class WorkspaceProvider:
         print("Waiting for workspace provider to start...")
         while True:
             time.sleep(0.2)
-            print("Checking if workspace provider is running...")
             try:
                 response = self._request("GET", "health")
                 match response.status_code:
@@ -55,6 +57,15 @@ class WorkspaceProvider:
             except Exception as e:
                 print(f"Error: {e}")
                 pass
+
+            if not self.running:
+                self.process.stdout.close()
+                output = self.process.stdout.read()
+                print(output)
+                self.process.stderr.close()
+                error = self.process.stderr.read()
+                print(error)
+                raise Exception("Workspace provider failed to start")
 
         print("Workspace provider started")
 
@@ -96,11 +107,11 @@ class WorkspaceProvider:
         return response.json()
     
     def run_command(self, workspace_id: str, command: str):
-        response = self._request("POST", f"workspaces/{workspace_id}/cmd", json={"command": command})
+        response = self._request("POST", f"workspaces/{workspace_id}/cmd", json={"cmd": command})
         return response.json()
     
     def run_command_with_output(self, workspace_id: str, command: str):
-        response = self._request("POST", f"workspaces/{workspace_id}/cmd_with_output", json={"command": command})
+        response = self._request("POST", f"workspaces/{workspace_id}/cmd_with_output", json={"cmd": command})
         return response.json()
     
     def write_file(self, workspace_id: str, path: str, content: str):

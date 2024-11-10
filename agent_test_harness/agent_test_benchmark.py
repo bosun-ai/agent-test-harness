@@ -33,11 +33,17 @@ class AgentTestBenchmark:
     # 5. Run the coverage tool again to determine improvements
     # 6. Run a git diff between the original git repo and the version in the workspace to measure impact
     def run(self):
+        print("Provisioning LLM proxy...")
         self.provision_llm_proxy()
+        print("Provisioning workspace...")
         self.provision_workspace()
+        print("Establishing initial git ref...")
         self.establish_initial_git_ref()
+        print("Running coverage tool...")
         self.results["initial_coverage_tool_output"] = self.run_coverage_tool()
+        print("Running agent...")
         self.results["agent_output"] = self.run_agent()
+        print("Running coverage tool again...")
         self.results["final_coverage_tool_output"] = self.run_coverage_tool()
         self.results["git_diff"] = self.run_git_diff()
         return self.results
