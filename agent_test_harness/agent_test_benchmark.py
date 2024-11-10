@@ -22,7 +22,8 @@ class AgentTestBenchmark:
         self.workspace = None
         self.initial_git_ref = None
         self.results = {}
-        self.repository_name = self.repository["url"].split("/")[-1]
+        self.repository_name = self.repository["name"]
+        self.repository_path = "/" + self.repository_name
         self.name = f"{self.agent["name"]}-{self.repository_name}"
 
     # Steps
@@ -48,6 +49,9 @@ class AgentTestBenchmark:
         self.results["git_diff"] = self.run_git_diff()
         return self.results
 
+    def run_command_in_workdir(self, command: str):
+        return self.workspace_provider.run_command_with_output(self.workspace["id"], f"cd {self.repository_path} && {command}")
+
     def provision_llm_proxy(self):
         self.project = self.llm_proxy.create_project(self.name)
 
@@ -55,13 +59,14 @@ class AgentTestBenchmark:
         self.workspace = self.workspace_provider.create_workspace()
 
     def establish_initial_git_ref(self):
-        self.initial_git_ref = self.workspace_provider.run_command_with_output(self.workspace["id"], "git rev-parse HEAD")
+        commit_context = "git config user.name 'agent-test-harness'; git config user.email 'agent-test-harness@example.com';"
+        self.initial_git_ref = self.run_command_in_workdir(f"{commit_context} git commit -a -m \"benchmark-head\" 1>/dev/null; git rev-parse HEAD")
 
     def run_coverage_tool(self):
-        return self.workspace_provider.run_command_with_output(self.workspace["id"], self.repository["coverage_tool_command"])
+        return self.run_command_in_workdir(self.repository["coverage_tool_command"])
 
     def run_agent(self):
-        return self.workspace_provider.run_command_with_output(self.workspace["id"], self.agent["command"])
+        return self.run_command_in_workdir(self.agent["command"])
 
     def run_git_diff(self):
-        return self.workspace_provider.run_command_with_output(self.workspace["id"], f"git diff {self.initial_git_ref}")
+        return self.run_command_in_workdir(f"git diff {self.initial_git_ref}")
