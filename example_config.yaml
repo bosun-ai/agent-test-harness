@@ -1,27 +1,46 @@
 agents:
-  - name: example
-    setup_script: echo 'Set up example agent'
-    command: echo 'Run example agent'
+  # - name: example
+  #   setup_script: echo 'Set up example agent' >> /tmp/setup.log;
+  #   command: echo 'Run example agent'
+  - name: cover-agent
+    setup_script: |
+      echo "Set up cover agent (LLM: $OPENAI_API_BASE, API_KEY: $OPENAI_API_KEY)" >> /tmp/setup.log;
+      apt update;
+      apt install -y python3-pip pipx && echo "Installed pip" >> /tmp/setup.log;
+      pipx install git+https://github.com/Codium-ai/cover-agent.git && pipx ensurepath && echo "Installed cover agent" >> /tmp/setup.log;
+    command: |
+      echo "Running cover agent (LLM: $OPENAI_API_BASE, API_KEY: $OPENAI_API_KEY)" >> /tmp/setup.log;
+      cd /todolist && \
+      /root/.local/bin/cover-agent \
+        --source-file-path "/todolist/src/AddItem.tsx" \
+        --test-file-path "/todolist/src/AddItem.test.tsx" \
+        --project-root "/todolist" \
+        --code-coverage-report-path "/todolist/coverage/cobertura-coverage.xml" \
+        --test-command "npm test -- --coverage --watchAll=false --coverageReporters=cobertura --bail=1 -u" \
+        --test-command-dir "/todolist" \
+        --coverage-type "cobertura" \
+        --desired-coverage 100 \
+        --max-iterations 10 2>&1 | tee /tmp/cover-agent.log
+        --api-base "$OPENAI_API_BASE"
   # - name: fluyt
   #   setup_script: |
   #     curl -sL https://bosun-public.s3.eu-central-1.amazonaws.com/fluyt-cli -o /usr/local/bin/fluyt;
   #     chmod +x /usr/local/bin/fluyt
-  #   command: echo 'Run fluyt agent'
+  #     curl -sL https://raw.githubusercontent.com/bosun-ai/agent-test-harness/refs/heads/main/agents/fluyt/manifest-ts.yaml -o /tmp/manifest.yaml;
+  #   command: |
+  #     fluyt run /tmp/manifest.yaml
 
 repositories:
   - name: todolist
     url: https://github.com/bosun-ai/todolist.git
     setup_script: |
-      echo "Set up todolist repository" > /tmp/setup.log;
+      echo "Set up todolist repository" >> /tmp/setup.log;
       apt update;
       apt install -y curl;
-      curl -sL https://deb.nodesource.com/setup_20.x -o nodesource_setup.sh;
-      bash nodesource_setup.sh;
-      apt install -y nodejs;
-      echo "Installed nodejs" >> /tmp/setup.log;
+      curl -sL https://deb.nodesource.com/setup_20.x -o nodesource_setup.sh && bash nodesource_setup.sh \
+        && apt install -y nodejs && echo "Installed nodejs" >> /tmp/setup.log;
       cd /todolist;
-      npm install;
-      echo "Installed npm packages" >> /tmp/setup.log;
+      npm install && echo "Installed npm packages" >> /tmp/setup.log;
     coverage_tool_command: |
       cd /todolist;
       npm test -- --coverage --watchAll=false --bail=1 -u && cat coverage/lcov.info

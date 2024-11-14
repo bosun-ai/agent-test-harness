@@ -95,8 +95,8 @@ class WorkspaceProvider:
     def _request(self, method: str, path: str, **kwargs):
         return requests.request(method, f"{self.base_url}/{path}", **kwargs)
 
-    def create_workspace(self):
-        response = self._request("POST", "workspaces")
+    def create_workspace(self, env: dict):
+        response = self._request("POST", "workspaces", json={"env": env})
         return response.json()
 
     def delete_workspace(self, workspace_id: str):
@@ -105,13 +105,13 @@ class WorkspaceProvider:
     def list_workspaces(self):
         response = self._request("GET", "workspaces")
         return response.json()
-    
-    def run_command(self, workspace_id: str, command: str):
-        response = self._request("POST", f"workspaces/{workspace_id}/cmd", json={"cmd": command})
+
+    def run_command(self, workspace_id: str, command: str, env: dict):
+        response = self._request("POST", f"workspaces/{workspace_id}/cmd", json={"cmd": command, "env": env})
         return response.json()
-    
-    def run_command_with_output(self, workspace_id: str, command: str):
-        response = self._request("POST", f"workspaces/{workspace_id}/cmd_with_output", json={"cmd": command})
+
+    def run_command_with_output(self, workspace_id: str, command: str, env: dict):
+        response = self._request("POST", f"workspaces/{workspace_id}/cmd_with_output", json={"cmd": command, "env": env})
         return response.json()
     
     def write_file(self, workspace_id: str, path: str, content: str):

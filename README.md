@@ -42,3 +42,13 @@ access to an LLM.
 4. Run the agent inside the workspace
 5. Run the coverage tool again to determine improvements
 6. Run a git diff between the original git repo and the version in the workspace to measure impact
+
+### Agent environment
+
+Besides access to the LLM and the workspace, the agent might have external dependencies that need to be running. For this
+we can use docker compose to start the dependencies. So an agent might consist of two things:
+
+1. A docker compose file to start the dependencies
+2. A configuration for the agent that contains the workspace setup script and the command to run the agent.
+
+We also need a way to pass the LLM proxy address to the agent through the workspace provider.

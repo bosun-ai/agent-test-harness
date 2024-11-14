@@ -17,16 +17,19 @@ class LLMProxy:
     process: subprocess.Popen
     base_url: str
     running: bool
+    endpoint: str
 
     def __init__(self, config: dict):
         self.admin_token = secrets.token_hex(16)
         self.config = config
         self.process = None
         self.base_url = "http://localhost:50081"
+        self.endpoint = "http://host.docker.internal:50081/v1/openai/v1"
         self.running = False
 
     def run(self):
         env = os.environ.copy()
+        env["RUST_LOG"] = "debug"
         env["ADMIN_TOKEN"] = self.admin_token
         env["PORT"] = "50081"
         env["DATABASE_URL"] = "sqlite://tmp/llm_proxy.db"

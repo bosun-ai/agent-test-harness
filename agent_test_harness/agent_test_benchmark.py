@@ -26,6 +26,12 @@ class AgentTestBenchmark:
         self.repository_path = "/" + self.repository_name
         self.name = f"{self.agent["name"]}-{self.repository_name}"
 
+    def environment_variables(self):
+        return {
+            "OPENAI_API_BASE": self.llm_proxy.endpoint,
+            "OPENAI_API_KEY": self.project['token']
+        }
+
     # Steps
     # 1. Provide the LLM proxy
     # 2. Provision a workspace with a copy of the git repository
@@ -49,14 +55,19 @@ class AgentTestBenchmark:
         self.results["git_diff"] = self.run_git_diff()
         return self.results
 
-    def run_command_in_workdir(self, command: str):
-        return self.workspace_provider.run_command_with_output(self.workspace["id"], f"cd {self.repository_path} && {command}")
+    def run_command_in_workdir(self, command: str, env=None):
+        if env is None:
+            env = self.environment_variables()
+        else:
+            # merge the environment variables
+            env = {**self.environment_variables(), **env}
+        return self.workspace_provider.run_command_with_output(self.workspace["id"], f"cd {self.repository_path} && {command}", env)
 
     def provision_llm_proxy(self):
         self.project = self.llm_proxy.create_project(self.name)
 
     def provision_workspace(self):
-        self.workspace = self.workspace_provider.create_workspace()
+        self.workspace = self.workspace_provider.create_workspace(env=self.environment_variables())
 
     def establish_initial_git_ref(self):
         commit_context = "git config user.name 'agent-test-harness'; git config user.email 'agent-test-harness@example.com';"
@@ -66,7 +77,8 @@ class AgentTestBenchmark:
         return self.run_command_in_workdir(self.repository["coverage_tool_command"])
 
     def run_agent(self):
-        return self.run_command_in_workdir(self.agent["command"])
+        env = self.environment_variables()
+        return self.run_command_in_workdir(self.agent["command"], env)
 
     def run_git_diff(self):
         return self.run_command_in_workdir(f"git diff {self.initial_git_ref}")
