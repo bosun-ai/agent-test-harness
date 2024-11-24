@@ -1,3 +1,6 @@
+import logging
+import time
+
 from .llm_proxy import LLMProxy
 from .workspace_provider import WorkspaceProvider
 
@@ -40,19 +43,26 @@ class AgentTestBenchmark:
     # 5. Run the coverage tool again to determine improvements
     # 6. Run a git diff between the original git repo and the version in the workspace to measure impact
     def run(self):
-        print("Provisioning LLM proxy...")
+        logging.info("Provisioning LLM proxy...")
         self.provision_llm_proxy()
-        print("Provisioning workspace...")
+        logging.info("Provisioning workspace...")
         self.provision_workspace()
-        print("Establishing initial git ref...")
+        logging.info("Establishing initial git ref...")
         self.establish_initial_git_ref()
-        print("Running coverage tool...")
+        logging.info("Running coverage tool...")
         self.results["initial_coverage_tool_output"] = self.run_coverage_tool()
-        print("Running agent...")
+        logging.info("Running agent...")
+        start_time = time.time()
         self.results["agent_output"] = self.run_agent()
-        print("Running coverage tool again...")
+        end_time = time.time()
+        self.results["agent_execution_time"] = end_time - start_time
+        logging.info("Running coverage tool again...")
         self.results["final_coverage_tool_output"] = self.run_coverage_tool()
+        logging.info("Running git diff...")
         self.results["git_diff"] = self.run_git_diff()
+        logging.info("Getting LLM metrics...")
+        self.results["llm_metrics"] = self.get_llm_metrics()
+
         return self.results
 
     def run_command_in_workdir(self, command: str, env=None):
@@ -65,6 +75,9 @@ class AgentTestBenchmark:
 
     def provision_llm_proxy(self):
         self.project = self.llm_proxy.create_project(self.name)
+
+    def get_llm_metrics(self):
+        return self.llm_proxy.get_metrics(self.project["token"])
 
     def provision_workspace(self):
         self.workspace = self.workspace_provider.create_workspace(env=self.environment_variables())

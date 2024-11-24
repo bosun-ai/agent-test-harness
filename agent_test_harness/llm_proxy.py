@@ -5,6 +5,8 @@ import secrets
 import os
 import threading
 import time
+import logging
+import sys
 
 from .events import events
 
@@ -34,11 +36,12 @@ class LLMProxy:
         env["PORT"] = "50081"
         env["DATABASE_URL"] = "sqlite://tmp/llm_proxy.db"
 
-        print("Starting LLM proxy...")
+        logging.info("Starting LLM proxy...")
         self.process = subprocess.Popen(LLM_PROXY_COMMAND,
                                         shell=True,
-                                        # stdout=subprocess.PIPE,
-                                        # stderr=subprocess.PIPE,
+                                        # stdout and stderr are piped to the parent process's stderr
+                                        stdout=sys.stderr,
+                                        stderr=sys.stderr,
                                         env=env)
         self.running = True
         events.add_main_exit_event_listener(self.stop)
@@ -46,7 +49,7 @@ class LLMProxy:
         # wait for the LLM proxy to start by requesting the health endpoint
         while True:
             time.sleep(0.2)
-            print("Checking if LLM proxy is running...")
+            logging.info("Checking if LLM proxy is running...")
             try:
                 response = self._request("GET", "health")
                 match response.status_code:
@@ -57,10 +60,10 @@ class LLMProxy:
             except requests.exceptions.ConnectionError:
                 pass
             except Exception as e:
-                print(f"Error: {e}")
+                logging.error(f"Error: {e}")
                 pass
 
-        print("LLM proxy started")
+        logging.info("LLM proxy started")
 
         threading.Thread(target=self.monitor_process, daemon=True).start()
 
@@ -71,17 +74,17 @@ class LLMProxy:
             process.poll()
             if process.returncode is not None and self.running:
                 self.running = False
-                print("LLM proxy process exited early")
+                logging.error("LLM proxy process exited early")
                 process.stdout.close()
                 output = process.stdout.read()
-                print(output)
+                logging.error(output)
                 process.stderr.close()
                 error = process.stderr.read()
-                print(error)
+                logging.error(error)
                 break
 
     def stop(self):
-        print("Stopping LLM proxy...")
+        logging.info("Stopping LLM proxy...")
         self.running = False
         self.process.terminate()
 
@@ -99,13 +102,13 @@ class LLMProxy:
         return response
 
     def create_project(self, project_name: str):
-      print(f"Creating project {project_name}...")
-      response = self._request("POST", "admin/v1/projects", headers={"Authorization": f"Bearer {self.admin_token}"}, json={
-          "name": project_name,
+        logging.info(f"Creating project {project_name}...")
+        response = self._request("POST", "admin/v1/projects", headers={"Authorization": f"Bearer {self.admin_token}"}, json={
+            "name": project_name,
           "description": "Created by agent test harness"
         })
-      print(f"Project created: {response.json()}")
-      return response.json()
+        logging.info(f"Project created: {response.json()}")
+        return response.json()
     
     def get_metrics(self, project_token: str):
       response = self._request("GET", "v1/metrics", headers={"Authorization": f"Bearer {project_token}"})

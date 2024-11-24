@@ -8,6 +8,8 @@ import threading
 import time
 import requests
 import json
+import logging
+import sys
 
 from .events import events
 
@@ -35,14 +37,15 @@ class WorkspaceProvider:
         
         self.process = subprocess.Popen(WORKSPACE_PROVIDER_COMMAND,
                                         shell=True,
-                                        stdout=subprocess.PIPE,
-                                        stderr=subprocess.PIPE
+                                        # stdout and stderr are piped to the parent process's stderr
+                                        stdout=sys.stderr,
+                                        stderr=sys.stderr,
                                         )
         self.running = True
         events.add_main_exit_event_listener(self.stop)
 
         # wait for the workspace provider to start by requesting the health endpoint
-        print("Waiting for workspace provider to start...")
+        logging.info("Waiting for workspace provider to start...")
         while True:
             time.sleep(0.2)
             try:
@@ -55,19 +58,19 @@ class WorkspaceProvider:
             except requests.exceptions.ConnectionError:
                 pass
             except Exception as e:
-                print(f"Error: {e}")
+                logging.error(f"Error: {e}")
                 pass
 
             if not self.running:
                 self.process.stdout.close()
                 output = self.process.stdout.read()
-                print(output)
+                logging.error(output)
                 self.process.stderr.close()
                 error = self.process.stderr.read()
-                print(error)
+                logging.error(error)
                 raise Exception("Workspace provider failed to start")
 
-        print("Workspace provider started")
+        logging.info("Workspace provider started")
 
         threading.Thread(target=self.monitor_process, daemon=True).start()
 
@@ -78,17 +81,17 @@ class WorkspaceProvider:
             process.poll()
             if process.returncode is not None and self.running:
                 self.running = False
-                print("workspace provider process exited early")
+                logging.error("workspace provider process exited early")
                 process.stdout.close()
                 output = process.stdout.read()
-                print(output)
+                logging.error(output)
                 process.stderr.close()
                 error = process.stderr.read()
-                print(error)
+                logging.error(error)
                 break
 
     def stop(self):
-        print("Stopping workspace provider...")
+        logging.info("Stopping workspace provider...")
         self.running = False
         self.process.terminate()
 

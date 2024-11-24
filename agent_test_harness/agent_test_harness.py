@@ -2,6 +2,8 @@ from .agent_test_benchmark import AgentTestBenchmark
 from .workspace_provider import WorkspaceProvider
 from .llm_proxy import LLMProxy
 
+import logging
+
 class AgentTestHarness:
     llm_proxy: LLMProxy
     config: dict
@@ -41,10 +43,10 @@ class AgentTestHarness:
         workspace_provider = WorkspaceProvider(name, repository, setup_script)
         workspace_provider.run()
 
-        print("Initializing agent test benchmark...")
+        logging.info("Initializing agent test benchmark...")
         agent_test_benchmark = AgentTestBenchmark(self.llm_proxy, workspace_provider, agent, repository)
 
-        print("Running agent test benchmark...")
+        logging.info("Running agent test benchmark...")
         benchmark_result["results"] = agent_test_benchmark.run()
 
         return benchmark_result

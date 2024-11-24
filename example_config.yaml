@@ -43,7 +43,7 @@ repositories:
       npm install && echo "Installed npm packages" >> /tmp/setup.log;
     coverage_tool_command: |
       cd /todolist;
-      npm test -- --coverage --watchAll=false --bail=1 -u && cat coverage/lcov.info
+      npm test -- --coverage --watchAll=false --bail=1 -u --coverageReporters=cobertura 2>/tmp/coverage_tool.log 1>/tmp/coverage_tool_output.log && cat coverage/cobertura-coverage.xml
   # - name: derrick
   #   url: https://github.com/bosun-ai/derrick.git
   #   setup_script: |
