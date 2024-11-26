@@ -24,12 +24,12 @@ agents:
     setup_script: |
       apt update;
       apt install -y curl gettext-base; # needed for envsubst
-      curl -sL https://bosun-public.s3.eu-central-1.amazonaws.com/fluyt-cli -o /usr/local/bin/fluyt;
+      curl -sL https://storage.googleapis.com/bosun-ai-pub/fluyt-cli-x86_64 -o /usr/local/bin/fluyt;
       chmod +x /usr/local/bin/fluyt;
       echo "Set up fluyt agent" >> /tmp/setup.log;
       cat <<- "MANIFEST_EOF" > /tmp/manifest.yaml.tmpl
       goal: "Write a unit test for $FILE_PATH"
-      codebase:
+      repository:
         url: $REPOSITORY_URL
         lang: typescript
         commands:
@@ -54,7 +54,7 @@ agents:
       export PORT=8000
       envsubst < /tmp/manifest.yaml.tmpl > /tmp/manifest.yaml
       echo "Running fluyt agent" >> /tmp/setup.log;
-      fluyt run /tmp/manifest.yaml 2>&1 | tee /tmp/fluyt.log
+      fluyt manifest run -f /tmp/manifest.yaml 2>&1 | tee /tmp/fluyt.log
 
 repositories:
   - name: todolist
