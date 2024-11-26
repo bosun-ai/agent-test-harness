@@ -47,6 +47,11 @@ agents:
 
       MANIFEST_EOF
     command: |
+      export QDRANT_URL=http://host.docker.internal:6333
+      export REDIS_URL=redis://host.docker.internal:6379
+      export OTEL_ENABLED=false
+      export RUST_BACKTRACE=1
+      export PORT=8000
       envsubst < /tmp/manifest.yaml.tmpl > /tmp/manifest.yaml
       echo "Running fluyt agent" >> /tmp/setup.log;
       fluyt run /tmp/manifest.yaml 2>&1 | tee /tmp/fluyt.log
