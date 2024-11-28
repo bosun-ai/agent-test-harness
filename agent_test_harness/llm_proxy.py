@@ -26,7 +26,7 @@ class LLMProxy:
         self.config = config
         self.process = None
         self.base_url = "http://localhost:50081"
-        self.endpoint = "http://host.docker.internal:50081/v1/openai/v1"
+        self.endpoint = "http://172.17.0.1:50081/v1/openai/v1"
         self.running = False
 
     def run(self):

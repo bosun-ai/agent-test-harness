@@ -23,7 +23,10 @@ agents:
   - name: fluyt
     setup_script: |
       apt update;
-      apt install -y curl gettext-base; # needed for envsubst
+      apt install -y curl fd-find ripgrep gettext-base; # needed for envsubst
+      echo "Installed apt packages" >> /tmp/setup.log;
+      ln -s $(which fdfind) /usr/local/bin/fd
+      echo "Installed fd" >> /tmp/setup.log;
       curl -sL https://storage.googleapis.com/bosun-ai-pub/fluyt-cli-x86_64 -o /usr/local/bin/fluyt;
       chmod +x /usr/local/bin/fluyt;
       echo "Set up fluyt agent" >> /tmp/setup.log;
@@ -47,10 +50,12 @@ agents:
 
       MANIFEST_EOF
     command: |
-      export QDRANT_URL=http://host.docker.internal:6333
-      export REDIS_URL=redis://host.docker.internal:6379
+      export QDRANT_URL=http://172.17.0.1:6333
+      export REDIS_URL=redis://172.17.0.1:6379
+      export OPENAI_ENDPOINT=$OPENAI_API_BASE
       export OTEL_ENABLED=false
       export RUST_BACKTRACE=1
+      export RUST_LOG=debug
       export PORT=8000
       envsubst < /tmp/manifest.yaml.tmpl > /tmp/manifest.yaml
       echo "Running fluyt agent" >> /tmp/setup.log;
