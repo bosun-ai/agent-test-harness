@@ -42,6 +42,10 @@ agents:
         filesystem: LocalUnmanaged
       before: []
       agents:
+        - name: "Indexer"
+          type: IndexRepository
+          args:
+            question: ""
         - name: "Unit Tester"
           type: WriteUnitTestAgent
           args:
@@ -50,13 +54,14 @@ agents:
 
       MANIFEST_EOF
     command: |
-      export QDRANT_URL=http://172.17.0.1:6333
+      export QDRANT_URL=http://172.17.0.1:6334
       export REDIS_URL=redis://172.17.0.1:6379
       export OPENAI_ENDPOINT=$OPENAI_API_BASE
       export OTEL_ENABLED=false
       export RUST_BACKTRACE=1
       export RUST_LOG=debug
       export PORT=8000
+      env > /tmp/env.txt
       envsubst < /tmp/manifest.yaml.tmpl > /tmp/manifest.yaml
       echo "Running fluyt agent" >> /tmp/setup.log;
       fluyt manifest run -f /tmp/manifest.yaml 2>&1 | tee /tmp/fluyt.log
