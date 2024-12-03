@@ -1,0 +1,1 @@
+gsutil cp -r tmp/results/* gs://bosun-ai-pub/agent_test_results/
