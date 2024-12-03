@@ -31,7 +31,7 @@ class AgentTestHarness:
 
     def benchmark_agent_on_repository(self, agent: dict, repository: dict):
         repository_name = repository["name"]
-        name = f"{agent["name"]}-{repository_name}"
+        name = f"{agent['name']}-{repository_name}"
 
         benchmark_result = {
             "repository_url": repository["url"],

@@ -96,12 +96,12 @@ def organize_results(results):
         successful_repositories = [repository_stat for repository_stat in repository_stats if repository_stat["successful"]]
         agent_stats = {
             "name": agent_name,
-            "repositories": repository_stats,
+            "runs": repository_stats,
             "total_completion_tokens": sum([repository_stat["total_completion_tokens"] for repository_stat in repository_stats]),
             "total_prompt_tokens": sum([repository_stat["total_prompt_tokens"] for repository_stat in repository_stats]),
             "total_token_count": sum([repository_stat["total_token_count"] for repository_stat in repository_stats]),
-            "repositories_count": len(repository_stats),
-            "successful_repositories_count": len(successful_repositories),
+            "runs_count": len(repository_stats),
+            "successful_runs_count": len(successful_repositories),
             "average_coverage_diff": sum([repository_stat["coverage_diff"]["line_rate"] for repository_stat in successful_repositories]) / len(successful_repositories),
             "average_agent_execution_time": sum([repository_stat["agent_execution_time"] for repository_stat in repository_stats]) / len(repository_stats),
             "models": [

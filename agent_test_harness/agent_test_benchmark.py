@@ -27,7 +27,7 @@ class AgentTestBenchmark:
         self.results = {}
         self.repository_name = self.repository["name"]
         self.repository_path = "/" + self.repository_name
-        self.name = f"{self.agent["name"]}-{self.repository_name}"
+        self.name = f"{self.agent['name']}-{self.repository_name}"
         self.files = self.repository["files"]
 
     def environment_variables(self):
