@@ -62,12 +62,12 @@ class WorkspaceProvider:
                 pass
 
             if not self.running:
-                self.process.stdout.close()
-                output = self.process.stdout.read()
-                logging.error(output)
-                self.process.stderr.close()
-                error = self.process.stderr.read()
-                logging.error(error)
+                # self.process.stdout.close()
+                # output = self.process.stdout.read()
+                # logging.error(output)
+                # self.process.stderr.close()
+                # error = self.process.stderr.read()
+                # logging.error(error)
                 raise Exception("Workspace provider failed to start")
 
         logging.info("Workspace provider started")
@@ -82,18 +82,24 @@ class WorkspaceProvider:
             if process.returncode is not None and self.running:
                 self.running = False
                 logging.error("workspace provider process exited early")
-                process.stdout.close()
-                output = process.stdout.read()
-                logging.error(output)
-                process.stderr.close()
-                error = process.stderr.read()
-                logging.error(error)
+                # process.stdout.close()
+                # output = process.stdout.read()
+                # logging.error(output)
+                # process.stderr.close()
+                # error = process.stderr.read()
+                # logging.error(error)
                 break
 
     def stop(self):
         logging.info("Stopping workspace provider...")
         self.running = False
         self.process.terminate()
+        # wait for the process to exit
+        self.process.wait()
+        logging.info("Workspace provider stopped")
+        # Check if the process exited cleanly
+        if self.process.returncode != 0:
+            logging.error(f"Workspace provider exited with code {self.process.returncode}")
 
     def _request(self, method: str, path: str, **kwargs):
         return requests.request(method, f"{self.base_url}/{path}", **kwargs)
