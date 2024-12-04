@@ -10,10 +10,10 @@ import requests
 import json
 import logging
 import sys
-
+import uuid
 from .events import events
 
-WORKSPACE_PROVIDER_COMMAND = "derrick --provisioning-mode docker --workspace-config-path tmp/workspace_config.json --server-mode http"
+WORKSPACE_PROVIDER_COMMAND = "derrick --provisioning-mode docker --workspace-config-path <WORKSPACE_CONFIG_PATH> --server-mode http"
 
 class WorkspaceProvider:
     process: subprocess.Popen
@@ -22,6 +22,7 @@ class WorkspaceProvider:
     running: bool
 
     def __init__(self, name: str, repository: dict, setup_script: str):
+        logging.info(f"Initializing workspace provider for {name}...")
         self.workspace_config = {
             "name": name,
             "repositories": [{"url": repository["url"], "path": "/" + repository["name"]}],
@@ -31,11 +32,13 @@ class WorkspaceProvider:
         self.running = False
 
     def run(self):
-        # TODO: Write the workspace config to a file and pass the path to the workspace-provider command
-        with open("tmp/workspace_config.json", "w") as f:
+        # Write the workspace config to a random temporary file
+        config_path = f"tmp/workspace_config_{uuid.uuid4()}.json"
+
+        with open(config_path, "w") as f:
             json.dump(self.workspace_config, f)
         
-        self.process = subprocess.Popen(WORKSPACE_PROVIDER_COMMAND,
+        self.process = subprocess.Popen(WORKSPACE_PROVIDER_COMMAND.replace("<WORKSPACE_CONFIG_PATH>", config_path),
                                         shell=True,
                                         # stdout and stderr are piped to the parent process's stderr
                                         stdout=sys.stderr,
