@@ -11,6 +11,9 @@ import json
 import logging
 import sys
 import uuid
+import os
+import signal
+
 from .events import events
 
 WORKSPACE_PROVIDER_COMMAND = "derrick --provisioning-mode docker --workspace-config-path <WORKSPACE_CONFIG_PATH> --server-mode http"
@@ -43,6 +46,7 @@ class WorkspaceProvider:
                                         # stdout and stderr are piped to the parent process's stderr
                                         stdout=sys.stderr,
                                         stderr=sys.stderr,
+                                        preexec_fn=os.setsid
                                         )
         self.running = True
         events.add_main_exit_event_listener(self.stop)
@@ -96,7 +100,7 @@ class WorkspaceProvider:
     def stop(self):
         logging.info("Stopping workspace provider...")
         self.running = False
-        self.process.terminate()
+        os.killpg(os.getpgid(self.process.pid), signal.SIGTERM)
         # wait for the process to exit
         self.process.wait()
         logging.info("Workspace provider stopped")
