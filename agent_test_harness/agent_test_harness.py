@@ -49,4 +49,6 @@ class AgentTestHarness:
         logging.info("Running agent test benchmark...")
         benchmark_result["results"] = agent_test_benchmark.run()
 
+        workspace_provider.stop()
+
         return benchmark_result
