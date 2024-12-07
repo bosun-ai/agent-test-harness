@@ -1,4 +1,4 @@
-runs: 5
+runs: 1
 agents:
   - name: cover-agent
     setup_script: |
