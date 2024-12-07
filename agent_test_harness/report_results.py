@@ -111,3 +111,4 @@ def report_results(results):
             ]
         }
         agents_stats.append(agent_stats)
+    return agents_stats
