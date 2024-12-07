@@ -20,7 +20,7 @@ def main():
     if args.report_results:
         logging.info("Reporting results...")
         results = json.load(open("tmp/results/results.json", "r"))
-        report_results(results)
+        export_results(results)
         return
     else:
         logging.info("Running agent test harness...")
@@ -29,14 +29,14 @@ def main():
         agent_test_harness = AgentTestHarness(config)
         results = agent_test_harness.benchmark_agents()
         print(json.dumps(results, indent=2))
-        report_results(results)
+        export_results(results)
     except Exception as e:
         logging.error(f"Error: {e}\n{traceback.format_exc()}")
         exit(1)
     finally:
         events.trigger_main_exit_event()
 
-def report_results(results):
+def export_results(results):
     os.makedirs("tmp/results", exist_ok=True)
     agents_stats = report_results(results)
     with open("tmp/results/agent_stats.json", "w") as f:
