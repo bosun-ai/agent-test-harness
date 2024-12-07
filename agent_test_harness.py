@@ -102,8 +102,8 @@ def organize_results(results):
             "total_token_count": sum([repository_stat["total_token_count"] for repository_stat in repository_stats]),
             "runs_count": len(repository_stats),
             "successful_runs_count": len(successful_repositories),
-            "average_coverage_diff": sum([repository_stat["coverage_diff"]["line_rate"] for repository_stat in successful_repositories]) / len(successful_repositories),
-            "average_agent_execution_time": sum([repository_stat["agent_execution_time"] for repository_stat in repository_stats]) / len(repository_stats),
+            "average_coverage_diff": sum([repository_stat["coverage_diff"]["line_rate"] for repository_stat in successful_repositories]) / len(successful_repositories) if successful_repositories else None,
+            "average_agent_execution_time": sum([repository_stat["agent_execution_time"] for repository_stat in repository_stats]) / len(repository_stats) if repository_stats else None,
             "models": [
                 {
                     "name": model,

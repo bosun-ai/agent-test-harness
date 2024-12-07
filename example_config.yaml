@@ -1,3 +1,4 @@
+runs: 5
 agents:
   # - name: cover-agent
   #   setup_script: |

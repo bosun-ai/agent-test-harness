@@ -5,6 +5,7 @@ from .llm_proxy import LLMProxy
 from .workspace_provider import WorkspaceProvider
 
 class AgentTestBenchmark:
+    run_name: str
     llm_proxy: LLMProxy
     agent: dict
     repository: dict
@@ -16,7 +17,7 @@ class AgentTestBenchmark:
     name: str
     repository_name: str
 
-    def __init__(self, llm_proxy: LLMProxy, workspace_provider: WorkspaceProvider, agent: dict, repository: dict):
+    def __init__(self, name: str, llm_proxy: LLMProxy, workspace_provider: WorkspaceProvider, agent: dict, repository: dict):
         self.llm_proxy = llm_proxy
         self.workspace_provider = workspace_provider
         self.agent = agent
@@ -27,7 +28,7 @@ class AgentTestBenchmark:
         self.results = {}
         self.repository_name = self.repository["name"]
         self.repository_path = "/" + self.repository_name
-        self.name = f"{self.agent['name']}-{self.repository_name}"
+        self.name = name
         self.files = self.repository["files"]
 
     def environment_variables(self):
