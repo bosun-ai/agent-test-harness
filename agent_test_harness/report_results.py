@@ -101,6 +101,8 @@ def report_results(results):
             "successful_runs_count": len(successful_repositories),
             "average_coverage_diff": sum([repo["coverage_diff"]["line_rate"] for repo in successful_repositories]) / len(successful_repositories) if successful_repositories else None,
             "average_agent_execution_time": sum([repo["agent_execution_time"] for repo in repository_stats]) / len(repository_stats) if repository_stats else None,
+            "average_coverage_before": sum([repo["coverage_before"]["line_rate"] for repo in successful_repositories]) / len(successful_repositories) if successful_repositories else None,
+            "average_coverage_after": sum([repo["coverage_after"]["line_rate"] for repo in successful_repositories]) / len(successful_repositories) if successful_repositories else None,
             "models": [
                 {
                     "name": model,

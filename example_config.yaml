@@ -1,4 +1,4 @@
-runs: 1
+runs: 5
 agents:
   - name: cover-agent
     setup_script: |
@@ -21,6 +21,54 @@ agents:
         --desired-coverage 100 \
         --api-base "$OPENAI_API_BASE" \
         --max-iterations 10 2>&1 | tee /tmp/cover-agent.log
+  - name: kwaak
+    setup_script: |
+      apt update;
+      apt install -y curl fd-find ripgrep gettext-base; # needed for envsubst
+      echo "Installed apt packages" >> /tmp/setup.log;
+      ln -s $(which fdfind) /usr/local/bin/fd
+      echo "Installed fd" >> /tmp/setup.log;
+      curl -sL https://storage.googleapis.com/bosun-ai-pub/kwaak-x86_64 -o /usr/local/bin/kwaak;
+      chmod +x /usr/local/bin/kwaak;
+      echo "Set up kwaak agent" >> /tmp/setup.log;
+
+      cat <<- "CONFIG_EOF" > /tmp/kwaak.toml
+      language = "typescript"
+      tool_executor = "local"
+
+      [github]
+      owner = "bosun-ai"
+      repository = "todolist"
+      main_branch = "master"
+
+      [commands]
+      test = "$TEST_COMMAND"
+      coverage = "$TEST_COMMAND"
+
+      [llm.indexing]
+      api_key = "env:OPENAI_API_KEY"
+      provider = "OpenAI"
+      prompt_model = "gpt-4o-mini"
+      base_url = "$OPENAI_API_BASE"
+
+      [llm.query]
+      api_key = "env:OPENAI_API_KEY"
+      provider = "OpenAI"
+      prompt_model = "gpt-4o"
+      base_url = "$OPENAI_API_BASE"
+
+      [llm.embedding]
+      api_key = "env:OPENAI_API_KEY"
+      provider = "OpenAI"
+      embedding_model = "text-embedding-3-large"
+      base_url = "$OPENAI_API_BASE"
+
+      CONFIG_EOF
+    command: |
+      echo "Running kwaak agent" >> /tmp/setup.log;
+      env >> /tmp/setup.log;
+      cd /todolist && \
+      kwaak -c /tmp/kwaak.toml 2>&1 -m run-agent -i "Write unit tests for $FILE_PATH until it has 100% coverage" | tee /tmp/kwaak.log
   - name: fluyt
     setup_script: |
       apt update;
@@ -32,7 +80,7 @@ agents:
       chmod +x /usr/local/bin/fluyt;
       echo "Set up fluyt agent" >> /tmp/setup.log;
       cat <<- "MANIFEST_EOF" > /tmp/manifest.yaml.tmpl
-      goal: "Write a unit test for $FILE_PATH"
+      goal: "Write unit tests for $FILE_PATH until it has 100% coverage"
       repository:
         url: $REPOSITORY_URL
         lang: typescript
