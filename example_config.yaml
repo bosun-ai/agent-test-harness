@@ -67,8 +67,9 @@ agents:
     command: |
       echo "Running kwaak agent" >> /tmp/setup.log;
       env >> /tmp/setup.log;
+      cat /tmp/kwaak.toml | envsubst > kwaak.toml
       cd /todolist && \
-      kwaak -c /tmp/kwaak.toml 2>&1 -m run-agent -i "Write unit tests for $FILE_PATH until it has 100% coverage" | tee /tmp/kwaak.log
+      kwaak -c kwaak.toml 2>&1 -m run-agent -i "Write unit tests for $FILE_PATH until it has 100% coverage" | tee /tmp/kwaak.log
   - name: fluyt
     setup_script: |
       apt update;
