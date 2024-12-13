@@ -56,14 +56,14 @@ class AgentTestBenchmark:
         logging.info("Establishing initial git ref...")
         self.establish_initial_git_ref()
         logging.info("Running coverage tool...")
-        self.results["initial_coverage_tool_output"] = self.run_test_command()
+        self.results["initial_coverage_tool_output"] = self.get_test_coverage()
         logging.info("Running agent...")
         start_time = time.time()
         self.results["agent_output"] = self.run_agent()
         end_time = time.time()
         self.results["agent_execution_time"] = end_time - start_time
         logging.info("Running coverage tool again...")
-        self.results["final_coverage_tool_output"] = self.run_test_command()
+        self.results["final_coverage_tool_output"] = self.get_test_coverage()
         logging.info("Running git diff...")
         self.results["git_diff"] = self.run_git_diff()
         logging.info("Getting LLM metrics...")
@@ -92,8 +92,9 @@ class AgentTestBenchmark:
         commit_context = "git config user.name 'agent-test-harness'; git config user.email 'agent-test-harness@example.com';"
         self.initial_git_ref = self.run_command_in_workdir(f"{commit_context} git commit -a -m \"benchmark-head\" 1>/dev/null; git rev-parse HEAD")
 
-    def run_test_command(self):
-        return self.run_command_in_workdir(self.repository["test_command"])
+    def get_test_coverage(self):
+        self.run_command_in_workdir(self.repository["test_command"])
+        return self.run_command_in_workdir(f'cat {self.repository["coverage_report_path"]}')
 
     def run_agent(self):
         env = self.environment_variables()

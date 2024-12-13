@@ -1,4 +1,4 @@
-runs: 5
+runs: 2
 agents:
   - name: cover-agent
     setup_script: |
@@ -46,19 +46,19 @@ agents:
       coverage = "$TEST_COMMAND"
 
       [llm.indexing]
-      api_key = "env:OPENAI_API_KEY"
+      api_key = "text:$OPENAI_API_KEY"
       provider = "OpenAI"
       prompt_model = "gpt-4o-mini"
       base_url = "$OPENAI_API_BASE"
 
       [llm.query]
-      api_key = "env:OPENAI_API_KEY"
+      api_key = "text:$OPENAI_API_KEY"
       provider = "OpenAI"
       prompt_model = "gpt-4o"
       base_url = "$OPENAI_API_BASE"
 
       [llm.embedding]
-      api_key = "env:OPENAI_API_KEY"
+      api_key = "text:$OPENAI_API_KEY"
       provider = "OpenAI"
       embedding_model = "text-embedding-3-large"
       base_url = "$OPENAI_API_BASE"
@@ -67,9 +67,9 @@ agents:
     command: |
       echo "Running kwaak agent" >> /tmp/setup.log;
       env >> /tmp/setup.log;
-      cat /tmp/kwaak.toml | envsubst > kwaak.toml
+      cat /tmp/kwaak.toml | envsubst > /tmp/kwaak.rendered.toml
       cd /todolist && \
-      kwaak -c kwaak.toml 2>&1 -m run-agent -i "Write unit tests for $FILE_PATH until it has 100% coverage" | tee /tmp/kwaak.log
+      kwaak -c /tmp/kwaak.rendered.toml -m run-agent -i "Write unit tests for $FILE_PATH until it has 100% coverage" 2>&1 | tee /tmp/kwaak.log
   - name: fluyt
     setup_script: |
       apt update;
@@ -101,7 +101,7 @@ agents:
           args:
             question: "$FILE_PATH"
       after: []
-
+ 
       MANIFEST_EOF
     command: |
       export QDRANT_URL=http://172.17.0.1:6334
@@ -127,7 +127,7 @@ repositories:
         && apt install -y nodejs && echo "Installed nodejs" >> /tmp/setup.log;
       cd /todolist;
       npm install && echo "Installed npm packages" >> /tmp/setup.log;
-    test_command: npm test -- --coverage --watchAll=false --bail=1 -u --coverageReporters=cobertura 2>/tmp/coverage_tool.log 1>/tmp/coverage_tool_output.log && cat coverage/cobertura-coverage.xml
+    test_command: npm test -- --coverage --watchAll=false --bail=1 -u --coverageReporters=cobertura 2>&1 | tee /tmp/coverage_tool.log 
     coverage_report_path: /todolist/coverage/cobertura-coverage.xml
     files:
       - [src/AddItem.tsx, src/AddItem.test.tsx]
