@@ -122,12 +122,12 @@ class WorkspaceProvider:
         response = self._request("GET", "workspaces")
         return response.json()
 
-    def run_command(self, workspace_id: str, command: str, env: dict):
-        response = self._request("POST", f"workspaces/{workspace_id}/cmd", json={"cmd": command, "env": env})
+    def run_command(self, workspace_id: str, command: str, env: dict, timeout: int = 10*60):
+        response = self._request("POST", f"workspaces/{workspace_id}/cmd", json={"cmd": command, "env": env, "timeout": timeout})
         return response.json()
 
-    def run_command_with_output(self, workspace_id: str, command: str, env: dict):
-        response = self._request("POST", f"workspaces/{workspace_id}/cmd_with_output", json={"cmd": command, "env": env})
+    def run_command_with_output(self, workspace_id: str, command: str, env: dict, timeout: int = 10*60):
+        response = self._request("POST", f"workspaces/{workspace_id}/cmd_with_output", json={"cmd": command, "env": env, "timeout": timeout})
         return response.json()
     
     def write_file(self, workspace_id: str, path: str, content: str):
