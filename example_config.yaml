@@ -1,4 +1,5 @@
 runs: 2
+results_path: tmp/results
 agents:
   - name: cover-agent
     setup_script: |

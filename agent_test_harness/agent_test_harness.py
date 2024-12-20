@@ -1,26 +1,34 @@
 from .agent_test_benchmark import AgentTestBenchmark
 from .workspace_provider import WorkspaceProvider
 from .llm_proxy import LLMProxy
-
+from .benchmark import Benchmark
 import logging
+import traceback
 
 class AgentTestHarness:
     llm_proxy: LLMProxy
     config: dict
     runs: int
+    benchmark: Benchmark
 
     def __init__(self, config: dict):
         self.config = config
         self.llm_proxy = LLMProxy(config)
         self.llm_proxy.run()
         self.runs = config["runs"]
+        self.benchmark = Benchmark(config)
 
     def benchmark_agents(self):
-        benchmark_results = []
-        for agent in self.config["agents"]:
-            benchmark_results.append(self.benchmark_agent(agent, self.config["repositories"]))
+        while next_run := self.benchmark.next_run():
+            try:
+                results = self.benchmark_agent(next_run["agent"], next_run["repository"], next_run["iteration"])
+                self.benchmark.add_result(next_run["run_name"], results)
+            except Exception as e:
+                logging.error(f"Error benchmarking agent {next_run['agent']['name']} on repository {next_run['repository']['name']}: {e}")
+                backtrace = traceback.format_exc()
+                self.benchmark.add_result(next_run["run_name"], {"error": str(e), "backtrace": backtrace})
 
-        return benchmark_results
+        return self.benchmark.results
 
     def benchmark_agent(self, agent: dict, repositories: list[dict], runs: int = 1):
         benchmark_results = {
