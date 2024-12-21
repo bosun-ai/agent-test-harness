@@ -1,13 +1,13 @@
 runs: 2
 results_path: tmp/results
 agents:
-  - name: cover-agent
+  - name: qodo-cover 
     version: "latest"
     setup_script: |
       echo "Set up cover agent (LLM: $OPENAI_API_BASE, API_KEY: $OPENAI_API_KEY)" >> /tmp/setup.log;
       apt update;
       apt install -y python3-pip pipx && echo "Installed pip" >> /tmp/setup.log;
-      pipx install git+https://github.com/Codium-ai/cover-agent.git && pipx ensurepath && echo "Installed cover agent" >> /tmp/setup.log;
+      pipx install git+https://github.com/qodo-ai/qodo-cover.git && pipx ensurepath && echo "Installed cover agent" >> /tmp/setup.log;
     command: |
       echo "Running cover agent (LLM: $OPENAI_API_BASE, API_KEY: $OPENAI_API_KEY)" >> /tmp/setup.log;
       env >> /tmp/setup.log;
