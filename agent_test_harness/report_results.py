@@ -64,7 +64,7 @@ def report_results(results):
                 "total_statements": coverage_diff.diff_total_statements(),
                 "total_misses": coverage_diff.diff_total_misses(),
             } if coverage_diff else None,
-            "agent_execution_time": run["agent_execution_time"],
+            "agent_execution_time": benchmark_result["agent_execution_time"],
             "total_completion_tokens": sum([llm_metric["completion_token_count"] for llm_metric in llm_metrics]),
             "completions_count": len(llm_metrics),
             "total_prompt_tokens": sum([llm_metric["prompt_token_count"] for llm_metric in llm_metrics]),
