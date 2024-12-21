@@ -52,3 +52,90 @@ we can use docker compose to start the dependencies. So an agent might consist o
 2. A configuration for the agent that contains the workspace setup script and the command to run the agent.
 
 We also need a way to pass the LLM proxy address to the agent through the workspace provider.
+
+
+## Implementation
+
+### Workspace provider
+
+We've implemented a workspace provider in Derrick.
+
+### LLM proxy
+
+We've implemented a LLM proxy in Amsterdam.
+
+## Persisting results
+
+We need to store the results of the benchmark. Right now it just dumps the output to a json file.
+
+Things that we would like to be able to do:
+
+- Contribute individual results
+
+We could:
+
+- Simply load the json file, add the new result, and save it again.
+- Connect to a database, and store the results there.
+
+If we do that, it would be nice if we would host it so we could run benchmarks
+wherever and submit the results.
+
+Then we need a server that exposes an API to submit results and query them.
+
+We need to host that server somewhere.
+
+# TODOS
+
+- [ ] Pick 3 small projects, 3 medium projects, 2 large projects for the initial benchmark, for each platform (rust, typescript, python)
+- [X] Decide how to persist the results of the benchmark
+- [X] Timeout in derrick
+
+
+## Project choices
+
+### Rust
+
+#### Small <10k lines
+
+- tokei https://github.com/XAMPPRocky/tokei
+
+#### Medium <100k lines
+
+- ripgrep https://github.com/BurntSushi/ripgrep
+
+
+#### Large >100k lines
+
+- [ ] 
+
+
+### Typescript / Javascript
+
+#### Small <10k lines
+
+- todolist https://github.com/bosun-ai/todolist
+- 
+
+#### Medium <100k lines
+
+- rrweb https://github.com/rrweb-io/rrweb
+- mermaid https://github.com/mermaid-js/mermaid
+
+#### Large
+
+- [ ]
+
+
+### Python
+
+#### Small <10k lines
+
+- gpt-migrate https://github.com/joshpxyne/gpt-migrate
+
+#### Medium <100k lines
+
+- llama-stack https://github.com/meta-llama/llama-stack
+
+#### Large >100k lines
+
+- Apache Airflow https://github.com/apache/airflow
