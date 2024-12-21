@@ -31,55 +31,55 @@ def report_results(results):
     for agent_result in results:
         agent_name = agent_result["agent_name"]
         repository_stats = []
-        logging.info(f"Organizing results for agent: {agent_name}")
-        for repository_result in agent_result["results"]:
-            repository_url = repository_result["repository_url"]
-            repository_results = repository_result["results"]
-            llm_metrics = repository_results["llm_metrics"]
-            run_id = repository_results["run"] if "run" in repository_results else None
-            models = list(set([llm_metric["model_name"] for llm_metric in llm_metrics]))
+        logging.info(f"Organizing results for agent run {agent_result['run']}")
+        repository_result = agent_result["result"]
+        repository_url = repository_result["repository_url"]
+        repository_results = repository_result["results"]
+        llm_metrics = repository_results["llm_metrics"]
+        run_id = repository_results["run"] if "run" in repository_results else None
+        models = list(set([llm_metric["model_name"] for llm_metric in llm_metrics]))
 
-            coverage_report = generate_coverage_report(repository_results)
-            coverage_after = coverage_report["coverage_after"]
-            coverage_before = coverage_report["coverage_before"]
-            coverage_diff = coverage_report["coverage_diff"]
+        coverage_report = generate_coverage_report(repository_results)
+        coverage_after = coverage_report["coverage_after"]
+        coverage_before = coverage_report["coverage_before"]
+        coverage_diff = coverage_report["coverage_diff"]
 
-            repository_stats.append({
-                "repository_url": repository_url,
-                "run_id": run_id,
-                "successful": coverage_after is not None,
-                "coverage_before": {
-                    "line_rate": coverage_before.line_rate(),
-                    "branch_rate": coverage_before.branch_rate(),
-                    "total_statements": coverage_before.total_statements(),
-                    "total_misses": coverage_before.total_misses(),
-                } if coverage_before else None,
-                "coverage_after": {
-                    "line_rate": coverage_after.line_rate(),
-                    "branch_rate": coverage_after.branch_rate(),
-                    "total_statements": coverage_after.total_statements(),
-                    "total_misses": coverage_after.total_misses(),
-                } if coverage_after else None,
-                "coverage_diff": {
-                    "line_rate": coverage_diff.diff_line_rate(),
-                    "total_statements": coverage_diff.diff_total_statements(),
-                    "total_misses": coverage_diff.diff_total_misses(),
-                } if coverage_diff else None,
-                "agent_execution_time": repository_results["agent_execution_time"],
-                "total_completion_tokens": sum([llm_metric["completion_token_count"] for llm_metric in llm_metrics]),
-                "completions_count": len(llm_metrics),
-                "total_prompt_tokens": sum([llm_metric["prompt_token_count"] for llm_metric in llm_metrics]),
-                "total_token_count": sum([llm_metric["total_token_count"] for llm_metric in llm_metrics]),
-                "models": [
-                    {
-                        "name": model,
-                        "completions_count": len([llm_metric for llm_metric in llm_metrics if llm_metric["model_name"] == model]),
-                        "total_completion_tokens": sum([llm_metric["completion_token_count"] for llm_metric in llm_metrics if llm_metric["model_name"] == model]),
-                        "total_prompt_tokens": sum([llm_metric["prompt_token_count"] for llm_metric in llm_metrics if llm_metric["model_name"] == model]),
-                        "total_token_count": sum([llm_metric["total_token_count"] for llm_metric in llm_metrics if llm_metric["model_name"] == model]),
-                    } for model in models
-                ]
-            })
+        repository_stats.append({
+            "repository_url": repository_url,
+            "run_id": run_id,
+            "successful": coverage_after is not None,
+            "coverage_before": {
+                "line_rate": coverage_before.line_rate(),
+                "branch_rate": coverage_before.branch_rate(),
+                "total_statements": coverage_before.total_statements(),
+                "total_misses": coverage_before.total_misses(),
+            } if coverage_before else None,
+            "coverage_after": {
+                "line_rate": coverage_after.line_rate(),
+                "branch_rate": coverage_after.branch_rate(),
+                "total_statements": coverage_after.total_statements(),
+                "total_misses": coverage_after.total_misses(),
+            } if coverage_after else None,
+            "coverage_diff": {
+                "line_rate": coverage_diff.diff_line_rate(),
+                "total_statements": coverage_diff.diff_total_statements(),
+                "total_misses": coverage_diff.diff_total_misses(),
+            } if coverage_diff else None,
+            "agent_execution_time": repository_results["agent_execution_time"],
+            "total_completion_tokens": sum([llm_metric["completion_token_count"] for llm_metric in llm_metrics]),
+            "completions_count": len(llm_metrics),
+            "total_prompt_tokens": sum([llm_metric["prompt_token_count"] for llm_metric in llm_metrics]),
+            "total_token_count": sum([llm_metric["total_token_count"] for llm_metric in llm_metrics]),
+            "models": [
+                {
+                    "name": model,
+                    "completions_count": len([llm_metric for llm_metric in llm_metrics if llm_metric["model_name"] == model]),
+                    "total_completion_tokens": sum([llm_metric["completion_token_count"] for llm_metric in llm_metrics if llm_metric["model_name"] == model]),
+                    "total_prompt_tokens": sum([llm_metric["prompt_token_count"] for llm_metric in llm_metrics if llm_metric["model_name"] == model]),
+                    "total_token_count": sum([llm_metric["total_token_count"] for llm_metric in llm_metrics if llm_metric["model_name"] == model]),
+                } for model in models
+            ]
+        })
 
         successful_repositories = [repository_stat for repository_stat in repository_stats if repository_stat["successful"]]
 
