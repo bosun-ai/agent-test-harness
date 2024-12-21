@@ -28,18 +28,17 @@ def generate_coverage_report(repository_result):
 
 def report_results(results):
     agents_stats = []
-    for agent_result in results:
-        agent_name = agent_result["agent_name"]
+    for run in results:
+        agent_name = run["agent_name"]
         repository_stats = []
-        logging.info(f"Organizing results for agent run {agent_result['run']}")
-        repository_result = agent_result["result"]
-        repository_url = repository_result["repository_url"]
-        repository_results = repository_result["results"]
-        llm_metrics = repository_results["llm_metrics"]
-        run_id = repository_results["run"] if "run" in repository_results else None
+        logging.info(f"Organizing results for agent run {run['run']}")
+        benchmark_result = run["result"]
+        repository_url = run["repository_url"]
+        llm_metrics = benchmark_result["llm_metrics"]
+        run_id = run["run"]
         models = list(set([llm_metric["model_name"] for llm_metric in llm_metrics]))
 
-        coverage_report = generate_coverage_report(repository_results)
+        coverage_report = generate_coverage_report(benchmark_result)
         coverage_after = coverage_report["coverage_after"]
         coverage_before = coverage_report["coverage_before"]
         coverage_diff = coverage_report["coverage_diff"]
@@ -65,7 +64,7 @@ def report_results(results):
                 "total_statements": coverage_diff.diff_total_statements(),
                 "total_misses": coverage_diff.diff_total_misses(),
             } if coverage_diff else None,
-            "agent_execution_time": repository_results["agent_execution_time"],
+            "agent_execution_time": run["agent_execution_time"],
             "total_completion_tokens": sum([llm_metric["completion_token_count"] for llm_metric in llm_metrics]),
             "completions_count": len(llm_metrics),
             "total_prompt_tokens": sum([llm_metric["prompt_token_count"] for llm_metric in llm_metrics]),

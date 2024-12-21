@@ -29,6 +29,7 @@ class AgentTestHarness:
                 self.benchmark.add_result(next_run["run_name"], {"error": str(e), "backtrace": backtrace})
 
         return list(self.benchmark.results.values())
+    
 
     def benchmark_agent(self, run_name: str, agent: dict, repository: dict):
         setup_script = repository["setup_script"] + "\n# Agent setup script:\n\n" + agent["setup_script"]
