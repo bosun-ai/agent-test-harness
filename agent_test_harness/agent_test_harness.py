@@ -38,8 +38,10 @@ class AgentTestHarness:
         workspace_provider = WorkspaceProvider(run_name, repository, setup_script)
         workspace_provider.run()
 
+        # TODO also add repository revision
         benchmark_result = {
             "agent_name": agent["name"],
+            "agent_version": agent["version"],
             "repository_url": repository["url"],
             "result": {},
             "run": run_name

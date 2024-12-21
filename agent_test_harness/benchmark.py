@@ -25,7 +25,7 @@ class Benchmark:
                 self.results[run_name] = json.load(f)
 
     def run_name(self, agent: dict, repository: dict, iteration: int):
-        return f"{agent['name']}-{repository['name']}-{iteration}"
+        return f"{agent['name']}-{agent['version']}-{repository['name']}-{iteration}"
 
     def add_result(self, run_name: str, result: dict):
         self.results[run_name] = result
@@ -40,6 +40,7 @@ class Benchmark:
                     if run_name not in self.results:
                         return {
                             "agent": agent,
+                            "agent_version": agent["version"],
                             "repository": repository,
                             "run_name": run_name
                         }
