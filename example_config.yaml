@@ -1,28 +1,28 @@
-runs: 2
+runs: 1
 results_path: tmp/results
 agents:
-  - name: qodo-cover 
-    version: "latest"
-    setup_script: |
-      echo "Set up cover agent (LLM: $OPENAI_API_BASE, API_KEY: $OPENAI_API_KEY)" >> /tmp/setup.log;
-      apt update;
-      apt install -y python3-pip pipx && echo "Installed pip" >> /tmp/setup.log;
-      pipx install git+https://github.com/qodo-ai/qodo-cover.git && pipx ensurepath && echo "Installed cover agent" >> /tmp/setup.log;
-    command: |
-      echo "Running cover agent (LLM: $OPENAI_API_BASE, API_KEY: $OPENAI_API_KEY)" >> /tmp/setup.log;
-      env >> /tmp/setup.log;
-      cd /todolist && \
-      /root/.local/bin/cover-agent \
-        --source-file-path "$FILE_PATH" \
-        --test-file-path "$TEST_FILE_PATH" \
-        --project-root "$PROJECT_ROOT" \
-        --code-coverage-report-path "$COVERAGE_REPORT_PATH" \
-        --test-command "$TEST_COMMAND" \
-        --test-command-dir "$PROJECT_ROOT" \
-        --coverage-type "cobertura" \
-        --desired-coverage 100 \
-        --api-base "$OPENAI_API_BASE" \
-        --max-iterations 10 2>&1 | tee /tmp/cover-agent.log
+  # - name: qodo-cover 
+  #   version: "latest"
+  #   setup_script: |
+  #     echo "Set up cover agent (LLM: $OPENAI_API_BASE, API_KEY: $OPENAI_API_KEY)" >> /tmp/setup.log;
+  #     apt update;
+  #     apt install -y python3-pip pipx && echo "Installed pip" >> /tmp/setup.log;
+  #     pipx install git+https://github.com/qodo-ai/qodo-cover.git && pipx ensurepath && echo "Installed cover agent" >> /tmp/setup.log;
+  #   command: |
+  #     echo "Running cover agent (LLM: $OPENAI_API_BASE, API_KEY: $OPENAI_API_KEY)" >> /tmp/setup.log;
+  #     env >> /tmp/setup.log;
+  #     cd /todolist && \
+  #     /root/.local/bin/cover-agent \
+  #       --source-file-path "$FILE_PATH" \
+  #       --test-file-path "$TEST_FILE_PATH" \
+  #       --project-root "$PROJECT_ROOT" \
+  #       --code-coverage-report-path "$COVERAGE_REPORT_PATH" \
+  #       --test-command "$TEST_COMMAND" \
+  #       --test-command-dir "$PROJECT_ROOT" \
+  #       --coverage-type "cobertura" \
+  #       --desired-coverage 100 \
+  #       --api-base "$OPENAI_API_BASE" \
+  #       --max-iterations 10 2>&1 | tee /tmp/cover-agent.log
   - name: kwaak
     version: "latest"
     setup_script: |
@@ -141,8 +141,8 @@ repositories:
     url: https://github.com/bosun-ai/derrick.git
     setup_script: |
       apt-get install -y build-essential lld curl;
-      curl https://sh.rustup.rs -sSf | bash -s -- -y;
-      echo 'source $HOME/.cargo/env' >> $HOME/.bashrc
+      curl https://sh.rustup.rs -sSf | bash -s -- -y 2>&1 | tee /tmp/rustup.log;
+      cargo install cargo-tarpaulin;
     test_command: cargo tarpaulin --out xml
     coverage_report_path: /derrick/cobertura.xml
     files:
@@ -151,8 +151,8 @@ repositories:
     url: https://github.com/XAMPPRocky/tokei
     setup_script: |
       apt-get install -y build-essential lld curl;
-      curl https://sh.rustup.rs -sSf | bash -s -- -y;
-      echo 'source $HOME/.cargo/env' >> $HOME/.bashrc
+      curl https://sh.rustup.rs -sSf | bash -s -- -y 2>&1 | tee /tmp/rustup.log;
+      cargo install cargo-tarpaulin;
     test_command: cargo tarpaulin --out xml
     coverage_report_path: /tokei/cobertura.xml
     files:
