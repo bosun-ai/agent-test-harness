@@ -121,26 +121,52 @@ agents:
   #     fluyt manifest run -f /tmp/manifest.yaml 2>&1 | tee /tmp/fluyt.log
 
 repositories:
-  - name: todolist
-    url: https://github.com/bosun-ai/todolist.git
-    setup_script: |
-      echo "Set up todolist repository" >> /tmp/setup.log;
-      apt update;
-      apt install -y curl;
-      curl -sL https://deb.nodesource.com/setup_20.x -o nodesource_setup.sh && bash nodesource_setup.sh \
-        && apt install -y nodejs && echo "Installed nodejs" >> /tmp/setup.log;
-      cd /todolist;
-      npm install && echo "Installed npm packages" >> /tmp/setup.log;
-    test_command: npm test -- --coverage --watchAll=false --bail=1 -u --coverageReporters=cobertura 2>&1 | tee /tmp/coverage_tool.log 
-    coverage_report_path: /todolist/coverage/cobertura-coverage.xml
-    files:
-      - [src/AddItem.tsx, src/AddItem.test.tsx]
-      - [src/App.tsx, src/App.test.tsx]
-      - [src/TodoList.tsx, src/TodoList.test.tsx]
-  # - name: derrick
-  #   url: https://github.com/bosun-ai/derrick.git
+  # - name: todolist
+  #   url: https://github.com/bosun-ai/todolist.git
   #   setup_script: |
-  #     apt-get install -y build-essential lld curl;
-  #     curl https://sh.rustup.rs -sSf | bash -s -- -y;
-  #     echo 'source $HOME/.cargo/env' >> $HOME/.bashrc
-  #   coverage_tool_command: cargo tarpaulin
+  #     echo "Set up todolist repository" >> /tmp/setup.log;
+  #     apt update;
+  #     apt install -y curl;
+  #     curl -sL https://deb.nodesource.com/setup_20.x -o nodesource_setup.sh && bash nodesource_setup.sh \
+  #       && apt install -y nodejs && echo "Installed nodejs" >> /tmp/setup.log;
+  #     cd /todolist;
+  #     npm install && echo "Installed npm packages" >> /tmp/setup.log;
+  #   test_command: npm test -- --coverage --watchAll=false --bail=1 -u --coverageReporters=cobertura 2>&1 | tee /tmp/coverage_tool.log 
+  #   coverage_report_path: /todolist/coverage/cobertura-coverage.xml
+  #   files:
+  #     - [src/AddItem.tsx, src/AddItem.test.tsx]
+  #     - [src/App.tsx, src/App.test.tsx]
+  #     - [src/TodoList.tsx, src/TodoList.test.tsx]
+  - name: derrick
+    url: https://github.com/bosun-ai/derrick.git
+    setup_script: |
+      apt-get install -y build-essential lld curl;
+      curl https://sh.rustup.rs -sSf | bash -s -- -y;
+      echo 'source $HOME/.cargo/env' >> $HOME/.bashrc
+    test_command: cargo tarpaulin --out xml
+    coverage_report_path: /derrick/cobertura.xml
+    files:
+      - [src/main.rs, src/main.rs]
+  - name: tokei
+    url: https://github.com/XAMPPRocky/tokei
+    setup_script: |
+      apt-get install -y build-essential lld curl;
+      curl https://sh.rustup.rs -sSf | bash -s -- -y;
+      echo 'source $HOME/.cargo/env' >> $HOME/.bashrc
+    test_command: cargo tarpaulin --out xml
+    coverage_report_path: /tokei/cobertura.xml
+    files:
+      - [src/main.rs, src/main.rs]
+      - [src/cli.rs, src/cli.rs]
+      - [src/cli_utils.rs, src/cli_utils.rs]
+      - [src/config.rs, src/config.rs]
+      - [src/input.rs, src/input.rs]
+      - [src/language/embedding.rs, src/language/embedding.rs]
+      - [src/language/language_type.rs, src/language/language_type.rs]
+      - [src/language/languages.rs, src/language/languages.rs]
+      - [src/language/mod.rs, src/language/mod.rs]
+      - [src/language/syntax.rs, src/language/syntax.rs]
+      - [src/sort.rs, src/sort.rs]
+      - [src/stats.rs, src/stats.rs]
+      - [src/utils/ext.rs, src/utils/ext.rs]
+      - [src/utils/fs.rs, src/utils/fs.rs]
