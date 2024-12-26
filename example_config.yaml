@@ -169,16 +169,11 @@ repositories:
     url: https://github.com/XAMPPRocky/tokei
     setup_script: |
       apt-get update 2>&1 >> /tmp/repo-setup.log;
-      apt-get install -y build-essential lld curl rustup 2>&1 >> /tmp/repo-setup.log;
-      echo "Going to install rust" >> /tmp/repo-setup.log;
+      apt-get install -y build-essential lld curl pkg-config libssl-dev rustup 2>&1 >> /tmp/repo-setup.log;
       cd $PROJECT_ROOT;
       rustup default stable 2>&1 >> /tmp/repo-setup.log;
-      echo "Going to install tarpaulin" >> /tmp/repo-setup.log;
-      cargo install cargo-tarpaulin 2>&1 >> /tmp/repo-setup.log;
-      echo "Installing tarpaulin was succesful: $?" >> /tmp/repo-setup.log;
-      echo "Installing rust was succesful: $?" >> /tmp/repo-setup.log;
+      rustup run stable cargo install cargo-tarpaulin 2>&1 >> /tmp/repo-setup.log;
       cargo tarpaulin --out xml 2>&1 >> /tmp/repo-setup.log;
-      echo "Running tarpaulin was succesful: $?" >> /tmp/repo-setup.log;
     test_command: cargo tarpaulin --out xml
     coverage_report_path: /tokei/cobertura.xml
     files:
