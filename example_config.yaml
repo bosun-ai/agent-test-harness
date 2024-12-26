@@ -35,19 +35,6 @@ agents:
       chmod +x /usr/local/bin/kwaak;
       echo "Set up kwaak agent" >> /tmp/setup.log;
 
-      # Determining project language by examining the files in the $PROJECT_ROOT. If there's a package.json, it's a Node.js project.
-      # if there's a Cargo.toml, it's a Rust project. If there's a requirements.txt, it's a Python project.
-      if [ -f $PROJECT_ROOT/package.json ]; then
-        echo "Detected Node.js project" >> /tmp/setup.log;
-        LANGUAGE = "typescript"
-      elif [ -f $PROJECT_ROOT/Cargo.toml ]; then
-        echo "Detected Rust project" >> /tmp/setup.log;
-        LANGUAGE = "rust"
-      elif [ -f $PROJECT_ROOT/requirements.txt ]; then
-        echo "Detected Python project" >> /tmp/setup.log;
-        LANGUAGE = "python"
-      fi
-
       cat <<- "CONFIG_EOF" > /tmp/kwaak.toml
       language = "$LANGUAGE"
       tool_executor = "local"
@@ -82,7 +69,22 @@ agents:
       CONFIG_EOF
     command: |
       echo "Running kwaak agent" >> /tmp/setup.log;
+      
+      # Determining project language by examining the files in the $PROJECT_ROOT. If there's a package.json, it's a Node.js project.
+      # if there's a Cargo.toml, it's a Rust project. If there's a requirements.txt, it's a Python project.
+      if [ -f $PROJECT_ROOT/package.json ]; then
+        echo "Detected Node.js project" >> /tmp/setup.log;
+        export LANGUAGE = "typescript"
+      elif [ -f $PROJECT_ROOT/Cargo.toml ]; then
+        echo "Detected Rust project" >> /tmp/setup.log;
+        export LANGUAGE = "rust"
+      elif [ -f $PROJECT_ROOT/requirements.txt ]; then
+        echo "Detected Python project" >> /tmp/setup.log;
+        export LANGUAGE = "python"
+      fi
+
       env >> /tmp/setup.log;
+
       cat /tmp/kwaak.toml | envsubst > /tmp/kwaak.rendered.toml
       cd $PROJECT_ROOT && \
       kwaak -c /tmp/kwaak.rendered.toml -m run-agent -i "Write unit tests for $FILE_PATH until it has 100% coverage" 2>&1 | tee /tmp/kwaak.log
@@ -157,6 +159,7 @@ repositories:
   #     apt-get install -y build-essential lld curl rustup 2>&1 >> /tmp/repo-setup.log;
   #     cargo install cargo-tarpaulin 2>&1 >> /tmp/repo-setup.log;
   #     cd $PROJECT_ROOT;
+  #     rustup default stable 2>&1 >> /tmp/repo-setup.log;
   #     cargo tarpaulin --out xml 2>&1 >> /tmp/repo-setup.log;
   #   test_command: cargo tarpaulin --out xml
   #   coverage_report_path: /derrick/cobertura.xml
@@ -169,6 +172,7 @@ repositories:
       apt-get install -y build-essential lld curl rustup 2>&1 >> /tmp/repo-setup.log;
       cargo install cargo-tarpaulin 2>&1 >> /tmp/repo-setup.log;
       cd $PROJECT_ROOT;
+      rustup default stable 2>&1 >> /tmp/repo-setup.log;
       cargo tarpaulin --out xml 2>&1 >> /tmp/repo-setup.log;
     test_command: cargo tarpaulin --out xml
     coverage_report_path: /tokei/cobertura.xml
