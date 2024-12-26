@@ -41,7 +41,9 @@ class WorkspaceProvider:
         with open(config_path, "w") as f:
             json.dump(self.workspace_config, f)
         
-        self.process = subprocess.Popen(WORKSPACE_PROVIDER_COMMAND.replace("<WORKSPACE_CONFIG_PATH>", config_path),
+        command = WORKSPACE_PROVIDER_COMMAND.replace("<WORKSPACE_CONFIG_PATH>", config_path)
+        logging.info(f"Running workspace provider with command: {command}")
+        self.process = subprocess.Popen(command,
                                         shell=True,
                                         # stdout and stderr are piped to the parent process's stderr
                                         stdout=sys.stderr,
