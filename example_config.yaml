@@ -172,9 +172,12 @@ repositories:
       apt-get install -y build-essential lld curl pkg-config libssl-dev rustup 2>&1 >> /tmp/repo-setup.log;
       cd $PROJECT_ROOT;
       rustup default stable 2>&1 >> /tmp/repo-setup.log;
+      echo "Install rust default was successful: $?" >> /tmp/repo-setup.log;
       rustup run stable cargo install cargo-tarpaulin 2>&1 >> /tmp/repo-setup.log;
-      cargo tarpaulin --out xml 2>&1 >> /tmp/repo-setup.log;
-    test_command: cargo tarpaulin --out xml
+      echo "Install tarpaulin was successful: $?" >> /tmp/repo-setup.log;
+      rustup run stable cargo tarpaulin --skip-clean --target-dir target/debug --engine llvm --out xml 2>&1 >> /tmp/repo-setup.log
+      echo "Run tarpaulin was successful: $?" >> /tmp/repo-setup.log;
+    test_command: cargo tarpaulin --skip-clean --target-dir target/debug --engine llvm --out xml
     coverage_report_path: /tokei/cobertura.xml
     files:
       - [src/main.rs, src/main.rs]
