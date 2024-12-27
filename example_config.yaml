@@ -74,13 +74,13 @@ agents:
       # if there's a Cargo.toml, it's a Rust project. If there's a requirements.txt, it's a Python project.
       if [ -f $PROJECT_ROOT/package.json ]; then
         echo "Detected Node.js project" >> /tmp/setup.log;
-        export LANGUAGE = "typescript"
+        export LANGUAGE="Typescript"
       elif [ -f $PROJECT_ROOT/Cargo.toml ]; then
         echo "Detected Rust project" >> /tmp/setup.log;
-        export LANGUAGE = "rust"
+        export LANGUAGE="Rust"
       elif [ -f $PROJECT_ROOT/requirements.txt ]; then
         echo "Detected Python project" >> /tmp/setup.log;
-        export LANGUAGE = "python"
+        export LANGUAGE="Python"
       fi
 
       env >> /tmp/setup.log;
