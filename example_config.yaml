@@ -147,7 +147,7 @@ repositories:
         && apt install -y nodejs && echo "Installed nodejs" >> /tmp/setup.log;
       cd /todolist;
       npm install && echo "Installed npm packages" >> /tmp/setup.log;
-    test_command: npm test -- --coverage --watchAll=false --bail=1 -u --coverageReporters=cobertura 2>&1 | tee -a /tmp/coverage_tool.log 
+    test_command: npm test -- --coverage --watchAll=false --bail=1 -u --coverageReporters=cobertura
     coverage_report_path: /todolist/coverage/cobertura-coverage.xml
     files:
       - [src/AddItem.tsx, src/AddItem.test.tsx]
