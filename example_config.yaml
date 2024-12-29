@@ -27,7 +27,7 @@ agents:
     version: "v0.1.6"
     setup_script: |
       apt update;
-      apt install -y curl fd-find ripgrep gettext-base; # needed for envsubst
+      apt install -y curl fd-find ripgrep gettext-base xz-utils;
       echo "Installed apt packages" >> /tmp/setup.log;
       ln -s $(which fdfind) /usr/local/bin/fd
       echo "Installed fd" >> /tmp/setup.log;
