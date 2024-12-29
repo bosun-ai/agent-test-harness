@@ -1,39 +1,39 @@
 runs: 1
 results_path: tmp/results
 agents:
-  # - name: qodo-cover 
-  #   version: "latest"
-  #   setup_script: |
-  #     echo "Set up cover agent (LLM: $OPENAI_API_BASE, API_KEY: $OPENAI_API_KEY)" >> /tmp/setup.log;
-  #     apt update;
-  #     apt install -y python3-pip pipx && echo "Installed pip" >> /tmp/setup.log;
-  #     pipx install git+https://github.com/qodo-ai/qodo-cover.git && pipx ensurepath && echo "Installed cover agent" >> /tmp/setup.log;
-  #   command: |
-  #     echo "Running cover agent (LLM: $OPENAI_API_BASE, API_KEY: $OPENAI_API_KEY)" >> /tmp/setup.log;
-  #     env >> /tmp/setup.log;
-  #     cd /todolist && \
-  #     /root/.local/bin/cover-agent \
-  #       --source-file-path "$FILE_PATH" \
-  #       --test-file-path "$TEST_FILE_PATH" \
-  #       --project-root "$PROJECT_ROOT" \
-  #       --code-coverage-report-path "$COVERAGE_REPORT_PATH" \
-  #       --test-command "$TEST_COMMAND" \
-  #       --test-command-dir "$PROJECT_ROOT" \
-  #       --coverage-type "cobertura" \
-  #       --desired-coverage 100 \
-  #       --api-base "$OPENAI_API_BASE" \
-  #       --max-iterations 10 2>&1 | tee /tmp/cover-agent.log
+  - name: qodo-cover 
+    version: "0.2.11"
+    setup_script: |
+      echo "Set up cover agent (LLM: $OPENAI_API_BASE, API_KEY: $OPENAI_API_KEY)" >> /tmp/setup.log;
+      apt update;
+      apt install -y python3-pip pipx && echo "Installed pip" >> /tmp/setup.log;
+      pipx install git+https://github.com/qodo-ai/qodo-cover.git@0.2.11 && pipx ensurepath && echo "Installed cover agent" >> /tmp/setup.log;
+    command: |
+      echo "Running cover agent (LLM: $OPENAI_API_BASE, API_KEY: $OPENAI_API_KEY)" >> /tmp/setup.log;
+      env >> /tmp/setup.log;
+      cd /todolist && \
+      /root/.local/bin/cover-agent \
+        --source-file-path "$FILE_PATH" \
+        --test-file-path "$TEST_FILE_PATH" \
+        --project-root "$PROJECT_ROOT" \
+        --code-coverage-report-path "$COVERAGE_REPORT_PATH" \
+        --test-command "$TEST_COMMAND" \
+        --test-command-dir "$PROJECT_ROOT" \
+        --coverage-type "cobertura" \
+        --desired-coverage 100 \
+        --api-base "$OPENAI_API_BASE" \
+        --max-iterations 10 2>&1 | tee /tmp/cover-agent.log
   - name: kwaak
-    version: "latest"
+    version: "v0.1.6"
     setup_script: |
       apt update;
       apt install -y curl fd-find ripgrep gettext-base; # needed for envsubst
       echo "Installed apt packages" >> /tmp/setup.log;
       ln -s $(which fdfind) /usr/local/bin/fd
       echo "Installed fd" >> /tmp/setup.log;
-      curl -sL https://storage.googleapis.com/bosun-ai-pub/kwaak-x86_64 -o /usr/local/bin/kwaak;
-      chmod +x /usr/local/bin/kwaak;
-      echo "Set up kwaak agent" >> /tmp/setup.log;
+      curl --proto '=https' --tlsv1.2 -LsSf https://github.com/bosun-ai/kwaak/releases/download/v0.1.6/kwaak-installer.sh | sh
+      echo "Set up kwaak agent: $?" >> /tmp/setup.log;
+      source $HOME/.cargo/env
 
       cat <<- "CONFIG_EOF" > /tmp/kwaak.toml
       language = "$LANGUAGE"
@@ -69,6 +69,7 @@ agents:
       CONFIG_EOF
     command: |
       echo "Running kwaak agent" >> /tmp/setup.log;
+      source $HOME/.cargo/env
       
       # Determining project language by examining the files in the $PROJECT_ROOT. If there's a package.json, it's a Node.js project.
       # if there's a Cargo.toml, it's a Rust project. If there's a requirements.txt, it's a Python project.
@@ -87,7 +88,7 @@ agents:
 
       cat /tmp/kwaak.toml | envsubst > /tmp/kwaak.rendered.toml
       cd $PROJECT_ROOT && \
-      kwaak -c /tmp/kwaak.rendered.toml -m run-agent -i "Write unit tests for $FILE_PATH until it has 100% coverage" 2>&1 | tee /tmp/kwaak.log
+      kwaak -c /tmp/kwaak.rendered.toml -m run-agent -i "Write unit tests for $FILE_PATH until it has 100% coverage, make sure to add the files to $TEST_FILE_PATH. Do not modify the original code, only add tests. Do not modify other files than $TEST_FILE_PATH." 2>&1 | tee /tmp/kwaak.log
   # - name: fluyt
   #   version: "latest"
   #   setup_script: |
@@ -136,35 +137,35 @@ agents:
   #     fluyt manifest run -f /tmp/manifest.yaml 2>&1 | tee /tmp/fluyt.log
 
 repositories:
-  # - name: todolist
-  #   url: https://github.com/bosun-ai/todolist.git
-  #   setup_script: |
-  #     echo "Set up todolist repository" >> /tmp/setup.log;
-  #     apt update;
-  #     apt install -y curl;
-  #     curl -sL https://deb.nodesource.com/setup_20.x -o nodesource_setup.sh && bash nodesource_setup.sh \
-  #       && apt install -y nodejs && echo "Installed nodejs" >> /tmp/setup.log;
-  #     cd /todolist;
-  #     npm install && echo "Installed npm packages" >> /tmp/setup.log;
-  #   test_command: npm test -- --coverage --watchAll=false --bail=1 -u --coverageReporters=cobertura 2>&1 | tee /tmp/coverage_tool.log 
-  #   coverage_report_path: /todolist/coverage/cobertura-coverage.xml
-  #   files:
-  #     - [src/AddItem.tsx, src/AddItem.test.tsx]
-  #     - [src/App.tsx, src/App.test.tsx]
-  #     - [src/TodoList.tsx, src/TodoList.test.tsx]
-  # - name: derrick
-  #   url: https://github.com/bosun-ai/derrick.git
-  #   setup_script: |
-  #     apt-get update 2>&1 >> /tmp/repo-setup.log;
-  #     apt-get install -y build-essential lld curl rustup 2>&1 >> /tmp/repo-setup.log;
-  #     cargo install cargo-tarpaulin 2>&1 >> /tmp/repo-setup.log;
-  #     cd $PROJECT_ROOT;
-  #     rustup default stable 2>&1 >> /tmp/repo-setup.log;
-  #     cargo tarpaulin --out xml 2>&1 >> /tmp/repo-setup.log;
-  #   test_command: cargo tarpaulin --out xml
-  #   coverage_report_path: /derrick/cobertura.xml
-  #   files:
-  #     - [src/main.rs, src/main.rs]
+  - name: todolist
+    url: https://github.com/bosun-ai/todolist.git
+    setup_script: |
+      echo "Set up todolist repository" >> /tmp/setup.log;
+      apt update;
+      apt install -y curl;
+      curl -sL https://deb.nodesource.com/setup_20.x -o nodesource_setup.sh && bash nodesource_setup.sh \
+        && apt install -y nodejs && echo "Installed nodejs" >> /tmp/setup.log;
+      cd /todolist;
+      npm install && echo "Installed npm packages" >> /tmp/setup.log;
+    test_command: npm test -- --coverage --watchAll=false --bail=1 -u --coverageReporters=cobertura 2>&1 | tee /tmp/coverage_tool.log 
+    coverage_report_path: /todolist/coverage/cobertura-coverage.xml
+    files:
+      - [src/AddItem.tsx, src/AddItem.test.tsx]
+      - [src/App.tsx, src/App.test.tsx]
+      - [src/TodoList.tsx, src/TodoList.test.tsx]
+ # - name: derrick
+ #   url: https://github.com/bosun-ai/derrick.git
+ #   setup_script: |
+ #     apt-get update 2>&1 >> /tmp/repo-setup.log;
+ #     apt-get install -y build-essential lld curl rustup 2>&1 >> /tmp/repo-setup.log;
+ #     cargo install cargo-tarpaulin 2>&1 >> /tmp/repo-setup.log;
+ #     cd $PROJECT_ROOT;
+ #     rustup default stable 2>&1 >> /tmp/repo-setup.log;
+ #     cargo tarpaulin --out xml 2>&1 >> /tmp/repo-setup.log;
+ #   test_command: cargo tarpaulin --out xml
+ #   coverage_report_path: /derrick/cobertura.xml
+ #   files:
+ #     - [src/main.rs, src/main.rs]
   - name: tokei
     url: https://github.com/XAMPPRocky/tokei
     setup_script: |
