@@ -22,7 +22,7 @@ agents:
         --coverage-type "cobertura" \
         --desired-coverage 100 \
         --api-base "$OPENAI_API_BASE" \
-        --max-iterations 10 2>&1 | tee /tmp/cover-agent.log
+        --max-iterations 10 2>&1 | tee -a /tmp/cover-agent.log
   - name: kwaak
     version: "v0.1.6"
     setup_script: |
@@ -88,7 +88,7 @@ agents:
 
       cat /tmp/kwaak.toml | envsubst > /tmp/kwaak.rendered.toml
       cd $PROJECT_ROOT && \
-      kwaak -c /tmp/kwaak.rendered.toml -m run-agent -i "Write unit tests for $FILE_PATH until it has 100% coverage, make sure to add the files to $TEST_FILE_PATH. Do not modify the original code, only add tests. Do not modify other files than $TEST_FILE_PATH." 2>&1 | tee /tmp/kwaak.log
+      kwaak -c /tmp/kwaak.rendered.toml -m run-agent -i "Write unit tests for $FILE_PATH until it has 100% coverage, make sure to add the files to $TEST_FILE_PATH. Do not modify the original code, only add tests. Do not modify other files than $TEST_FILE_PATH." 2>&1 | tee -a /tmp/kwaak.log
   # - name: fluyt
   #   version: "latest"
   #   setup_script: |
@@ -134,7 +134,7 @@ agents:
   #     env > /tmp/env.txt
   #     envsubst < /tmp/manifest.yaml.tmpl > /tmp/manifest.yaml
   #     echo "Running fluyt agent" >> /tmp/setup.log;
-  #     fluyt manifest run -f /tmp/manifest.yaml 2>&1 | tee /tmp/fluyt.log
+  #     fluyt manifest run -f /tmp/manifest.yaml 2>&1 | tee -a /tmp/fluyt.log
 
 repositories:
   - name: todolist
@@ -147,7 +147,7 @@ repositories:
         && apt install -y nodejs && echo "Installed nodejs" >> /tmp/setup.log;
       cd /todolist;
       npm install && echo "Installed npm packages" >> /tmp/setup.log;
-    test_command: npm test -- --coverage --watchAll=false --bail=1 -u --coverageReporters=cobertura 2>&1 | tee /tmp/coverage_tool.log 
+    test_command: npm test -- --coverage --watchAll=false --bail=1 -u --coverageReporters=cobertura 2>&1 | tee -a /tmp/coverage_tool.log 
     coverage_report_path: /todolist/coverage/cobertura-coverage.xml
     files:
       - [src/AddItem.tsx, src/AddItem.test.tsx]
