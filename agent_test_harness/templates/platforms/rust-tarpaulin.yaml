@@ -1,0 +1,12 @@
+setup_script: |
+  apt-get update 2>&1 >> /tmp/repo-setup.log;
+  apt-get install -y build-essential lld curl pkg-config libssl-dev rustup 2>&1 >> /tmp/repo-setup.log;
+  cd $PROJECT_ROOT;
+  rustup default stable 2>&1 >> /tmp/repo-setup.log;
+  echo "Install rust default was successful: $?" >> /tmp/repo-setup.log;
+  rustup run stable cargo install cargo-tarpaulin 2>&1 >> /tmp/repo-setup.log;
+  echo "Install tarpaulin was successful: $?" >> /tmp/repo-setup.log;
+  rustup run stable cargo tarpaulin --skip-clean --target-dir target/debug --engine llvm --out xml 2>&1 >> /tmp/repo-setup.log
+  echo "Run tarpaulin was successful: $?" >> /tmp/repo-setup.log;
+test_command: cargo tarpaulin --skip-clean --target-dir target/debug --engine llvm --out xml
+coverage_report_path: /$PROJECT_ROOT/cobertura.xml

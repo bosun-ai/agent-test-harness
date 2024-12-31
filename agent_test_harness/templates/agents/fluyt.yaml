@@ -1,0 +1,46 @@
+name: fluyt
+version: "latest"
+setup_script: |
+  apt update;
+  apt install -y curl fd-find ripgrep gettext-base; # needed for envsubst
+  echo "Installed apt packages" >> /tmp/setup.log;
+  ln -s $(which fdfind) /usr/local/bin/fd
+  echo "Installed fd" >> /tmp/setup.log;
+  curl -sL https://storage.googleapis.com/bosun-ai-pub/fluyt-cli-x86_64 -o /usr/local/bin/fluyt;
+  chmod +x /usr/local/bin/fluyt;
+  echo "Set up fluyt agent" >> /tmp/setup.log;
+  cat <<- "MANIFEST_EOF" > /tmp/manifest.yaml.tmpl
+  goal: "Write unit tests for $FILE_PATH until it has 100% coverage"
+  repository:
+    url: $REPOSITORY_URL
+    lang: typescript
+    commands:
+      coverage: $TEST_COMMAND
+      test: $TEST_COMMAND
+  workspace:
+    filesystem: LocalUnmanaged
+  before: []
+  agents:
+    - name: "Indexer"
+      type: IndexRepository
+      args:
+        question: ""
+    - name: "Unit Tester"
+      type: WriteUnitTestAgent
+      args:
+        question: "$FILE_PATH"
+  after: []
+
+  MANIFEST_EOF
+command: |
+  export QDRANT_URL=http://172.17.0.1:6334
+  export REDIS_URL=redis://172.17.0.1:6379
+  export OPENAI_ENDPOINT=$OPENAI_API_BASE
+  export OTEL_ENABLED=false
+  export RUST_BACKTRACE=1
+  export RUST_LOG=debug
+  export PORT=8000
+  env > /tmp/env.txt
+  envsubst < /tmp/manifest.yaml.tmpl > /tmp/manifest.yaml
+  echo "Running fluyt agent" >> /tmp/setup.log;
+  fluyt manifest run -f /tmp/manifest.yaml 2>&1 | tee -a /tmp/fluyt.log

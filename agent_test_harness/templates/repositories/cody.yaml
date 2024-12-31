@@ -1,0 +1,83 @@
+name: cody
+url: https://github.com/sourcegraph/cody
+setup_script: |
+  echo "Set up cody repository" >> /tmp/setup.log;
+  apt update;
+  apt install -y curl;
+  curl -sL https://deb.nodesource.com/setup_20.x -o nodesource_setup.sh && bash nodesource_setup.sh \
+    && apt install -y nodejs && echo "Installed nodejs" >> /tmp/setup.log;
+  cd /cody/agent;
+  npm install -g pnpm@8.6.7 && echo "Installed pnpm" >> /tmp/setup.log;
+  pnpm install && pnpm install @vitest/coverage-v8 && echo "Installed pnpm packages" >> /tmp/setup.log;
+test_command: pnpm --filter "./agent" exec vitest run --coverage --coverage.reporter cobertura --coverage.reportOnFailure true
+coverage_report_path: /cody/agent/coverage/cobertura-coverage.xml
+files:
+  # We want to include all files that have more than a hundred lines and that have less than 60% coverage.
+  - [agent/src/AgentAuthHandler.ts, agent/src/AgentAuthHandler.test.ts]
+  - [agent/src/AgentFixupControls.ts, agent/src/AgentFixupControls.test.ts]
+  - [agent/src/AgentWorkspaceDocuments.ts, agent/src/AgentWorkspaceDocuments.test.ts]
+  - [agent/src/NativeWebview.ts, agent/src/NativeWebview.test.ts]
+  - [agent/src/TestClient.ts, agent/src/TestClient.test.ts]
+  - [agent/src/agent.ts, agent/src/agent.test.ts]
+  - [agent/src/vscode-shim.ts, agent/src/vscode-shim.test.ts]
+  - [agent/src/cli/command-chat.ts, agent/src/cli/command-chat.test.ts]
+  - [agent/src/cli/command-jsonrpc-stdio.ts, agent/src/cli/command-jsonrpc-stdio.test.ts]
+  - [agent/src/cli/command-auth/AuthenticatedAccount.ts, agent/src/cli/command-auth/AuthenticatedAccount.test.ts]
+  - [agent/src/cli/command-auth/command-login.ts, agent/src/cli/command-auth/command-login.test.ts]
+  - [agent/src/cli/command-auth/secrets.ts, agent/src/cli/command-auth/secrets.test.ts]
+  - [agent/src/cli/command-bench/AutocompleteMatcher.ts, agent/src/cli/command-bench/AutocompleteMatcher.test.ts]
+  - [agent/src/cli/command-bench/EvaluationDocument.ts, agent/src/cli/command-bench/EvaluationDocument.test.ts]
+  - [agent/src/cli/command-bench/strategy-chat-context-types.ts, agent/src/cli/command-bench/strategy-chat-context-types.test.ts]
+  - [agent/src/cli/command-bench/strategy-chat-context.ts, agent/src/cli/command-bench/strategy-chat-context.test.ts]
+  - [agent/src/cli/command-bench/strategy-chat.ts, agent/src/cli/command-bench/strategy-chat.test.ts]
+  - [agent/src/cli/command-bench/strategy-fix.ts, agent/src/cli/command-bench/strategy-fix.test.ts]
+  - [agent/src/cli/command-bench/strategy-git-log.ts, agent/src/cli/command-bench/strategy-git-log.test.ts]
+  - [agent/src/cli/command-bench/triggerAutocomplete.ts, agent/src/cli/command-bench/triggerAutocomplete.test.ts]
+  - [agent/src/cli/command-bench/BaseCodegen.ts, agent/src/cli/command-bench/BaseCodegen.test.ts]
+  - [agent/src/cli/command-bench/Codegen.ts, agent/src/cli/command-bench/Codegen.test.ts]
+  - [agent/src/cli/command-bench/ConsoleReporter.ts, agent/src/cli/command-bench/ConsoleReporter.test.ts]
+  - [agent/src/cli/command-bench/Formatter.ts, agent/src/cli/command-bench/Formatter.test.ts]
+  - [agent/src/cli/command-bench/command.ts, agent/src/cli/command-bench/command.test.ts]
+  # ... etc
+# ------------------------------------|---------|----------|---------|---------|----------------------------------------------------------------------------------------------------
+# File                                | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s                                                                                  
+# ------------------------------------|---------|----------|---------|---------|----------------------------------------------------------------------------------------------------
+# All files                           |   19.08 |    67.04 |   36.71 |   19.08 |                                                                                                    
+#  src                                |    45.4 |    73.65 |   42.07 |    45.4 |                                                                                                    
+#   AgentAuthHandler.ts               |   56.73 |       65 |      75 |   56.73 | 30-31,40-42,45-48,52-79,97,102-108,128-129,136-137,154-155,158-160                                 
+#   AgentFixupControls.ts             |   26.13 |      100 |    7.14 |   26.13 | 19-23,26-30,33-37,40-45,48-49,52-54,56-58,65-67,72-86,98-108,111-120                               
+#   AgentWorkspaceDocuments.ts        |   48.76 |    78.94 |   35.29 |   48.76 | ...126-127,130-131,138-139,142-143,146-178,181-182,185-192,198,200-204,210-211,217-227,230-231,236 
+#   NativeWebview.ts                  |   17.57 |      100 |       0 |   17.57 | ...388-390,393-394,397-398,402-403,428-434,437-438,441-442,446-448,451-452,455-457,460-462,465-466 
+#   TestClient.ts                     |   29.51 |       60 |   24.32 |   29.51 | ...26-731,734-753,756-766,769-773,776-802,811-864,873-874,881-900,907-909,916-920,945-947,987-1002 
+#   agent.ts                          |   34.55 |    41.66 |   58.06 |   34.55 | ...-1634,1638-1640,1645-1652,1657-1658,1662-1663,1667-1668,1674-1677,1683-1702,1713-1714,1720-1741 
+#   vscode-shim.ts                    |   56.35 |    76.14 |   36.93 |   56.35 | ...-1043,1052-1053,1055-1056,1058-1059,1063-1068,1090-1101,1128-1132,1153-1158,1166-1170,1180-1189 
+#  src/cli                            |   36.14 |    55.55 |   63.15 |   36.14 |                                                                                                    
+#   command-chat.ts                   |   57.55 |    55.55 |    87.5 |   57.55 | ...190,211-212,216-259,270-274,290-291,294-299,303-307,310-312,348,369-370,372-373,378-391,403-419 
+#   command-jsonrpc-stdio.ts          |       0 |        0 |       0 |       0 | 1-206                                                                                              
+#  src/cli/command-auth               |    8.68 |        0 |       0 |    8.68 |                                                                                                    
+#   AuthenticatedAccount.ts           |      11 |      100 |       0 |      11 | 21-25,28-29,32-33,36-37,40-67,70-84,87-110,113-124                                                 
+#   command-login.ts                  |    9.21 |      100 |       0 |    9.21 | 45-277                                                                                             
+#   secrets.ts                        |   11.05 |      100 |       0 |   11.05 | ...164-168,170-171,173-175,178-188,191-193,196-200,203-209,211-218,221-229,232-245,248-255,259-282 
+#  src/cli/command-bench              |   27.03 |       49 |   24.24 |   27.03 |                                                                                                    
+#   AutocompleteMatcher.ts            |   84.86 |    65.62 |     100 |   84.86 | 44-45,48-49,52-53,88-89,118-119,121-127,147-150,171-172                                            
+#   EvaluationDocument.ts             |   65.99 |    16.27 |   44.44 |   65.99 | ...162-163,165,167-168,170,172-173,175-176,178-179,181-182,184-186,206-218,221-222,345,353,359-365 
+#   strategy-chat-context-types.ts    |    2.05 |      100 |       0 |    2.05 | 42-198,202-216,219-220                                                                             
+#   strategy-chat-context.ts          |    0.75 |      100 |       0 |    0.75 | 18-161                                                                                             
+#   strategy-chat.ts                  |    4.44 |      100 |       0 |    4.44 | 19-102,108-110                                                                                     
+#   strategy-fix.ts                   |     0.8 |      100 |       0 |     0.8 | 21-147                                                                                             
+#   strategy-git-log.ts               |    0.84 |      100 |       0 |    0.84 | 18-160                                                                                             
+#   triggerAutocomplete.ts            |    0.79 |      100 |       0 |    0.79 | 34-163                                                                                             
+#   BaseCodegen.ts                    |       0 |        0 |       0 |       0 | 1-308                                                                                              
+#   Codegen.ts                        |       0 |        0 |       0 |       0 | 1-694                                                                                              
+#   ConsoleReporter.ts                |       0 |        0 |       0 |       0 | 1-111                                                                                              
+#   Formatter.ts                      |       0 |        0 |       0 |       0 | 1-257                                                                                              
+#   command.ts                        |       0 |        0 |       0 |       0 | 1-115                                                                                              
+#   scip.ts                           |       0 |        0 |       0 |       0 | 1-6801                                                                                             
+#   CSharpEmitter.ts                  |       0 |        0 |       0 |       0 | 1-316                                                                                              
+#   JavaEmitter.ts                    |       0 |        0 |       0 |       0 | 1-305                                                                                              
+#   KotlinEmitter.ts                  |       0 |        0 |       0 |       0 | 1-283                                                                                              
+#  src/local-e2e                      |    16.2 |      100 |   14.28 |    16.2 |                                                                                                    
+#   helpers.ts                        |    16.2 |      100 |   14.28 |    16.2 | 34-36,110-146,152-153,159-167,172-219,225-303                                                      
+
+  
+  

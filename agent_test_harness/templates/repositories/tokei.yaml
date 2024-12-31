@@ -1,0 +1,19 @@
+name: tokei
+url: https://github.com/XAMPPRocky/tokei
+platform: rust-tarpaulin
+coverage_report_path: /tokei/cobertura.xml
+files:
+  - [src/main.rs, src/main.rs]
+  - [src/cli.rs, src/cli.rs]
+  - [src/cli_utils.rs, src/cli_utils.rs]
+  - [src/config.rs, src/config.rs]
+  - [src/input.rs, src/input.rs]
+  - [src/language/embedding.rs, src/language/embedding.rs]
+  - [src/language/language_type.rs, src/language/language_type.rs]
+  - [src/language/languages.rs, src/language/languages.rs]
+  - [src/language/mod.rs, src/language/mod.rs]
+  - [src/language/syntax.rs, src/language/syntax.rs]
+  - [src/sort.rs, src/sort.rs]
+  - [src/stats.rs, src/stats.rs]
+  - [src/utils/ext.rs, src/utils/ext.rs]
+  - [src/utils/fs.rs, src/utils/fs.rs]

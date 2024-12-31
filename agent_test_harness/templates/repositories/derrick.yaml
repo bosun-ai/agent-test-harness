@@ -1,0 +1,24 @@
+ name: derrick
+ url: https://github.com/bosun-ai/derrick.git
+ platform: rust-tarpaulin
+ coverage_report_path: /derrick/cobertura.xml
+ files:
+   - [src/config.rs, src/config.rs]
+   - [src/docker.rs, src/docker.rs]
+   - [src/github.rs, src/github.rs]
+   - [src/http_server.rs, src/http_server.rs]
+   - [src/lib.rs, src/lib.rs]
+   - [src/main.rs, src/main.rs]
+   - [src/messaging.rs, src/messaging.rs]
+   - [src/repository.rs, src/repository.rs]
+   - [src/server.rs, src/server.rs]
+   - [src/service.rs, src/service.rs]
+   - [src/traits.rs, src/traits.rs]
+   - [src/workspace.rs, src/workspace.rs]
+   - [src/workspace_controllers/docker.rs, src/workspace_controllers/docker.rs]
+   - [src/workspace_controllers/local_temp_sync.rs, src/workspace_controllers/local_temp_sync.rs]
+   - [src/workspace_controllers/mod.rs, src/workspace_controllers/mod.rs]
+   - [src/workspace_controllers/testing.rs, src/workspace_controllers/testing.rs]
+   - [src/workspace_providers/docker.rs, src/workspace_providers/docker.rs]
+   - [src/workspace_providers/local_temp_sync.rs, src/workspace_providers/local_temp_sync.rs]
+   - [src/workspace_providers/mod.rs, src/workspace_providers/mod.rs]

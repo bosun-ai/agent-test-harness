@@ -1,0 +1,66 @@
+name: kwaak
+version: "v0.1.6"
+setup_script: |
+  apt update;
+  apt install -y curl fd-find ripgrep gettext-base xz-utils;
+  echo "Installed apt packages" >> /tmp/setup.log;
+  ln -s $(which fdfind) /usr/local/bin/fd
+  echo "Installed fd" >> /tmp/setup.log;
+  curl --proto '=https' --tlsv1.2 -LsSf https://github.com/bosun-ai/kwaak/releases/download/v0.1.6/kwaak-installer.sh | sh
+  echo "Set up kwaak agent: $?" >> /tmp/setup.log;
+  source $HOME/.cargo/env
+
+  cat <<- "CONFIG_EOF" > /tmp/kwaak.toml
+  language = "$LANGUAGE"
+  tool_executor = "local"
+
+  [github]
+  owner = "bosun-ai"
+  repository = "todolist"
+  main_branch = "master"
+
+  [commands]
+  test = "$TEST_COMMAND"
+  coverage = "$TEST_COMMAND"
+
+  [llm.indexing]
+  api_key = "text:$OPENAI_API_KEY"
+  provider = "OpenAI"
+  prompt_model = "gpt-4o-mini"
+  base_url = "$OPENAI_API_BASE"
+
+  [llm.query]
+  api_key = "text:$OPENAI_API_KEY"
+  provider = "OpenAI"
+  prompt_model = "gpt-4o"
+  base_url = "$OPENAI_API_BASE"
+
+  [llm.embedding]
+  api_key = "text:$OPENAI_API_KEY"
+  provider = "OpenAI"
+  embedding_model = "text-embedding-3-large"
+  base_url = "$OPENAI_API_BASE"
+
+  CONFIG_EOF
+command: |
+  echo "Running kwaak agent" >> /tmp/setup.log;
+  source $HOME/.cargo/env
+  
+  # Determining project language by examining the files in the $PROJECT_ROOT. If there's a package.json, it's a Node.js project.
+  # if there's a Cargo.toml, it's a Rust project. If there's a requirements.txt, it's a Python project.
+  if [ -f $PROJECT_ROOT/package.json ]; then
+    echo "Detected Node.js project" >> /tmp/setup.log;
+    export LANGUAGE="Typescript"
+  elif [ -f $PROJECT_ROOT/Cargo.toml ]; then
+    echo "Detected Rust project" >> /tmp/setup.log;
+    export LANGUAGE="Rust"
+  elif [ -f $PROJECT_ROOT/requirements.txt ]; then
+    echo "Detected Python project" >> /tmp/setup.log;
+    export LANGUAGE="Python"
+  fi
+
+  env >> /tmp/setup.log;
+
+  cat /tmp/kwaak.toml | envsubst > /tmp/kwaak.rendered.toml
+  cd $PROJECT_ROOT && \
+  kwaak -c /tmp/kwaak.rendered.toml -m run-agent -i "Write unit tests for $FILE_PATH until it has 100% coverage, make sure to add the files to $TEST_FILE_PATH. Do not modify the original code, only add tests. Do not modify other files than $TEST_FILE_PATH." 2>&1 | tee -a /tmp/kwaak.log

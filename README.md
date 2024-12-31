@@ -98,6 +98,7 @@ We need to host that server somewhere.
 #### Small <10k lines
 
 - tokei https://github.com/XAMPPRocky/tokei
+- derrick https://github.com/bosun-ai/derrick
 
 #### Medium <100k lines
 
@@ -118,8 +119,8 @@ We need to host that server somewhere.
 
 #### Medium <100k lines
 
-- rrweb https://github.com/rrweb-io/rrweb
 - mermaid https://github.com/mermaid-js/mermaid
+- cody(agent) https://github.com/sourcegraph/cody
 
 #### Large
 

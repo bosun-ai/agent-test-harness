@@ -1,0 +1,21 @@
+name: qodo-cover 
+version: "0.2.11"
+setup_script: |
+  echo "Set up cover agent (LLM: $OPENAI_API_BASE, API_KEY: $OPENAI_API_KEY)" >> /tmp/setup.log;
+  apt update;
+  apt install -y python3-pip pipx && echo "Installed pip" >> /tmp/setup.log;
+  pipx install git+https://github.com/qodo-ai/qodo-cover.git@0.2.11 && pipx ensurepath && echo "Installed cover agent" >> /tmp/setup.log;
+command: |
+  echo "Running cover agent (LLM: $OPENAI_API_BASE, API_KEY: $OPENAI_API_KEY)" >> /tmp/setup.log;
+  env >> /tmp/setup.log;
+  cd /todolist && /root/.local/bin/cover-agent \
+    --source-file-path "$FILE_PATH" \
+    --test-file-path "$TEST_FILE_PATH" \
+    --project-root "$PROJECT_ROOT" \
+    --code-coverage-report-path "$COVERAGE_REPORT_PATH" \
+    --test-command "$TEST_COMMAND" \
+    --test-command-dir "$PROJECT_ROOT" \
+    --coverage-type "cobertura" \
+    --desired-coverage 100 \
+    --api-base "$OPENAI_API_BASE" \
+    --max-iterations 10 2>&1 | tee -a /tmp/cover-agent.log
