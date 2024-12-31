@@ -104,7 +104,6 @@ We need to host that server somewhere.
 
 - ripgrep https://github.com/BurntSushi/ripgrep
 
-
 #### Large >100k lines
 
 - [ ] 
