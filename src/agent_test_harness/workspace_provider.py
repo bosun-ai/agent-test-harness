@@ -126,6 +126,7 @@ class WorkspaceProvider:
         return requests.request(method, f"{self.base_url}/{path}", **kwargs)
 
     def create_workspace(self, env: dict):
+        logging.info("Creating workspace...")
         response = self._request("POST", "workspaces", json={"env": env})
         return response.json()
 

@@ -17,7 +17,6 @@ class Cli:
     def __init__(self):
         self.args: Optional[argparse.Namespace] = None
         self.config: Optional[Dict[str, Any]] = None
-        self.benchmark_config: Optional[BenchmarkConfig] = None
 
     def parse_args(self) -> None:
         parser = argparse.ArgumentParser()

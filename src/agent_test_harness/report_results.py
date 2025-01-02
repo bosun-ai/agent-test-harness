@@ -34,8 +34,28 @@ def report_results(results):
         logging.info(f"Organizing results for agent run {run['run']}")
         benchmark_result = run["result"]
         repository_url = run["repository_url"]
-        llm_metrics = benchmark_result["llm_metrics"]
         run_id = run["run"]
+
+        if "error" in benchmark_result:
+            repository_stats.append({
+                "repository_url": repository_url,
+                "run_id": run_id,
+                "successful": False,
+                "coverage_before": None,
+                "coverage_after": None,
+                "coverage_diff": None,
+                "agent_execution_time": None,
+                "total_completion_tokens": None,
+                "completions_count": None,
+                "total_prompt_tokens": None,
+                "total_token_count": None,
+                "models": None,
+                "error": benchmark_result["error"],
+                "backtrace": benchmark_result["backtrace"],
+            })
+            continue
+
+        llm_metrics = benchmark_result["llm_metrics"]
         models = list(set([llm_metric["model_name"] for llm_metric in llm_metrics]))
 
         coverage_report = generate_coverage_report(benchmark_result)

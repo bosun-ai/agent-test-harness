@@ -26,7 +26,16 @@ class AgentTestHarness:
             except Exception as e:
                 logging.error(f"Error benchmarking agent {next_run['agent']['name']} on repository {next_run['repository']['name']}: {e}")
                 backtrace = traceback.format_exc()
-                self.benchmark.add_result(next_run["run_name"], {"error": str(e), "backtrace": backtrace})
+                agent = next_run["agent"]
+                repository = next_run["repository"]
+                error_result = {
+                    "agent_name": agent["name"],
+                    "agent_version": agent["version"],
+                    "repository_url": repository["url"],
+                    "result": {"error": str(e), "backtrace": backtrace},
+                    "run": next_run["run_name"]
+                }
+                self.benchmark.add_result(next_run["run_name"], error_result)
 
         return list(self.benchmark.results.values())
     
