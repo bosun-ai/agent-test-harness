@@ -3,8 +3,9 @@ import traceback
 import argparse
 import os
 import logging
-import tempfile
 import yaml
+import subprocess
+import shutil
 from typing import Dict, Any, Optional
 
 from .agent_test_harness import AgentTestHarness
@@ -36,6 +37,7 @@ class Cli:
 
     def initialize(self) -> None:
         """Load and validate configuration"""
+        self.check_required_executables()
         # If both agent and repository are specified, we don't need a config file
         if self.args.agent and self.args.repository:
             # Create a config with just the specified agent and repository
@@ -108,3 +110,20 @@ class Cli:
             level=logging.INFO,
             format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
         )
+
+    def check_required_executables(self) -> None:
+        """Check if required executables are present and install them if not."""
+        required_executables = {
+            'amsterdam': 'amsterdam',
+            'derrick': 'derrick'
+        }
+        
+        for executable, package in required_executables.items():
+            if shutil.which(executable) is None:
+                logging.info(f"{executable} not found, attempting to install...")
+                try:
+                    subprocess.run(['cargo', 'install', package], check=True)
+                    logging.info(f"Successfully installed {executable}")
+                except subprocess.CalledProcessError as e:
+                    logging.error(f"Failed to install {executable}: {e}")
+                    exit(1)
