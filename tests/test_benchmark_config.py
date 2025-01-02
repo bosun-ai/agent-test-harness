@@ -1,10 +1,7 @@
 import pytest
-import os
-import tempfile
 import yaml
-import shutil
-from unittest.mock import patch, mock_open
 from typing import Dict, Any, Optional
+from unittest.mock import patch, MagicMock, mock_open
 
 from agent_test_harness.benchmark_config import BenchmarkConfig
 
@@ -86,6 +83,7 @@ def test_repository_config_with_template():
         "agents": [{"name": "test_agent"}],
         "repositories": [{
             "name": "test_repo",
+            "platform": "test_platform",
             "config_key": "config_value"
         }],
         "runs": 1,
@@ -118,7 +116,7 @@ def test_repository_config_with_platform():
     }
     
     platform_template = {
-        "platform_key": "platform_value"
+        "platform_key": "platform_value",
     }
     
     repo_template = {
@@ -141,6 +139,44 @@ def test_repository_config_with_platform():
     assert final_config["repositories"][0]["platform_key"] == "platform_value"
     assert final_config["repositories"][0]["repo_key"] == "repo_value"
     assert final_config["repositories"][0]["config_key"] == "config_value"
+
+def test_repository_config_platform_and_template():
+    """Test loading repository configuration with platform and template"""
+    config = {
+        "agents": [{"name": "test_agent"}],
+        "repositories": [{
+            "name": "test_repo",
+            "config_key": "config_value"
+        }],
+        "runs": 1,
+        "results_path": "results"
+    }
+    
+    platform_template = {
+        "platform_key": "platform_value"
+    }
+    
+    repo_template = {
+        "platform": "test_platform",
+        "repo_key": "repo_value"
+    }
+
+    def load_template_side_effect(template_type: str, name: str) -> Optional[Dict[str, Any]]:
+        if template_type == "platforms" and name == "test_platform":
+            return platform_template
+        elif template_type == "repositories" and name == "test_repo":
+            return repo_template
+        elif template_type == "agents" and name == "test_agent":
+            return {}
+        raise ValueError(f"Template not found: {template_type}/{name}")
+    
+    with patch('agent_test_harness.benchmark_config.BenchmarkConfig._load_template', side_effect=load_template_side_effect):
+        benchmark_config = BenchmarkConfig(config)
+        final_config = benchmark_config.config
+    
+        assert final_config["repositories"][0]["repo_key"] == "repo_value"
+        assert final_config["repositories"][0]["config_key"] == "config_value"
+        assert final_config["repositories"][0]["platform_key"] == "platform_value"
 
 def test_repository_config_platform_only():
     """Test loading repository configuration with only platform template"""

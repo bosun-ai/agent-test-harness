@@ -77,8 +77,8 @@ class BenchmarkConfig:
             repo.update(repo_overrides)
 
             # Load platform template if specified
-            if "platform" in repo_overrides:
-                platform_template = self._load_template("platforms", repo_overrides["platform"])
+            if "platform" in repo:
+                platform_template = self._load_template("platforms", repo["platform"])
                 if platform_template:
                     platform_template = platform_template.copy()
                     repo.update(platform_template)  # Platform template has lowest precedence
