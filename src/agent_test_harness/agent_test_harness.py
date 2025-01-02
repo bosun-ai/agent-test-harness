@@ -41,7 +41,9 @@ class AgentTestHarness:
     
 
     def benchmark_agent(self, run_name: str, agent: dict, repository: dict):
-        setup_script = repository["setup_script"] + "\n# Agent setup script:\n\n" + agent["setup_script"]
+        repository_setup_script = repository["setup_script"]
+        agent_setup_script = agent["setup_script"]
+        setup_script = f"{repository_setup_script}\n\n# Agent setup script:\n\n{agent_setup_script}"
 
         logging.info(f"Initializing workspace provider for run {run_name}...")
 
