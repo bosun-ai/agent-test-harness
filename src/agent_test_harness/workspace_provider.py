@@ -13,10 +13,22 @@ import sys
 import uuid
 import os
 import signal
+from dataclasses import dataclass
 
 from .events import events
 
 WORKSPACE_PROVIDER_COMMAND = "derrick --provisioning-mode docker --workspace-config-path <WORKSPACE_CONFIG_PATH> --server-mode http"
+
+@dataclass
+class CommandOutput:
+    exit_code: int
+    output: str
+
+    def succeeded(self) -> bool:
+        return self.exit_code == 0
+
+    def failed(self) -> bool:
+        return not self.succeeded()
 
 class WorkspaceProvider:
     process: subprocess.Popen
@@ -128,10 +140,16 @@ class WorkspaceProvider:
         response = self._request("POST", f"workspaces/{workspace_id}/cmd", json={"cmd": command, "env": env, "timeout": timeout})
         return response.json()
 
-    def run_command_with_output(self, workspace_id: str, command: str, env: dict, timeout: int = 10*60):
-        response = self._request("POST", f"workspaces/{workspace_id}/cmd_with_output", json={"cmd": command, "env": env, "timeout": timeout})
-        return response.json()
-    
+    def run_command_with_output(self, workspace_id: str, command: str, env: dict = None) -> CommandOutput:
+        response = requests.post(f"{self.base_url}/workspaces/{workspace_id}/command", json={
+            "command": command,
+            "env": env or {}
+        })
+        if response.status_code != 200:
+            raise Exception(f"Failed to run command: {response.text}")
+        result = response.json()
+        return CommandOutput(exit_code=result["exit_code"], output=result["output"])
+
     def write_file(self, workspace_id: str, path: str, content: str):
         response = self._request("POST", f"workspaces/{workspace_id}/write_file", json={"path": path, "content": content})
         return response.json()

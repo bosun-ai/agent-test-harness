@@ -90,11 +90,20 @@ class AgentTestBenchmark:
 
     def establish_initial_git_ref(self):
         commit_context = "git config user.name 'agent-test-harness'; git config user.email 'agent-test-harness@example.com';"
-        self.initial_git_ref = self.run_command_in_workdir(f"{commit_context} git commit -a -m \"benchmark-head\" 1>/dev/null; git rev-parse HEAD")
+        output = self.run_command_in_workdir(f"{commit_context} git commit -a -m \"benchmark-head\" 1>/dev/null; git rev-parse HEAD")
+        if output.failed():
+            raise Exception(f"Failed to establish initial git ref: {output.output}")
+        self.initial_git_ref = output.output.strip()
 
     def get_test_coverage(self):
-        self.run_command_in_workdir(self.repository["test_command"])
-        return self.run_command_in_workdir(f'cat {self.repository["coverage_report_path"]}')
+        test_run = self.run_command_in_workdir(self.repository["test_command"])
+        if test_run.failed():
+            raise Exception(f"Test command failed: {test_run.output}")
+            
+        coverage_output = self.run_command_in_workdir(f'cat {self.repository["coverage_report_path"]}')
+        if coverage_output.failed():
+            raise Exception(f"Failed to read coverage report: {coverage_output.output}")
+        return coverage_output.output
 
     def run_agent(self):
         env = self.environment_variables()
@@ -102,8 +111,14 @@ class AgentTestBenchmark:
         for file, test_file in self.files:
             log += f"Running agent on file {file}\n"
             this_env = {**env, "FILE_PATH": file, "TEST_FILE_PATH": test_file}
-            log += self.run_command_in_workdir(self.agent["command"], this_env)
+            result = self.run_command_in_workdir(self.agent["command"], this_env)
+            if result.failed():
+                raise Exception(f"Agent command failed: {result.output}")
+            log += result.output
         return log
 
     def run_git_diff(self):
-        return self.run_command_in_workdir(f"git diff {self.initial_git_ref}")
+        result = self.run_command_in_workdir(f"git diff {self.initial_git_ref}")
+        if result.failed():
+            raise Exception(f"Git diff failed: {result.output}")
+        return result.output
