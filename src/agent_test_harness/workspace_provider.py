@@ -123,39 +123,34 @@ class WorkspaceProvider:
             logging.error(f"Workspace provider exited with code {self.process.returncode}")
 
     def _request(self, method: str, path: str, **kwargs):
-        return requests.request(method, f"{self.base_url}/{path}", **kwargs)
+        response = requests.request(method, f"{self.base_url}/{path}", **kwargs)
+        if response.status_code >= 400:
+            raise Exception(f"Workspace provider returned status code {response.status_code}: {response.text}")
+        return response.json()
 
     def create_workspace(self, env: dict):
         logging.info("Creating workspace...")
-        response = self._request("POST", "workspaces", json={"env": env})
-        return response.json()
+        return self._request("POST", "workspaces", json={"env": env})
 
     def delete_workspace(self, workspace_id: str):
         self._request("DELETE", f"workspaces/{workspace_id}")
 
     def list_workspaces(self):
-        response = self._request("GET", "workspaces")
-        return response.json()
+        return self._request("GET", "workspaces")
 
     def run_command(self, workspace_id: str, command: str, env: dict, timeout: int = 10*60):
-        response = self._request("POST", f"workspaces/{workspace_id}/cmd", json={"cmd": command, "env": env, "timeout": timeout})
-        return response.json()
+        return self._request("POST", f"workspaces/{workspace_id}/cmd", json={"cmd": command, "env": env, "timeout": timeout})
 
     def run_command_with_output(self, workspace_id: str, command: str, env: dict = None) -> CommandOutput:
-        response = requests.post(f"{self.base_url}/workspaces/{workspace_id}/command", json={
+        result = self._request("POST", f"{self.base_url}/workspaces/{workspace_id}/command", json={
             "command": command,
             "env": env or {}
         })
-        if response.status_code != 200:
-            raise Exception(f"Failed to run command: {response.text}")
-        result = response.json()
         return CommandOutput(exit_code=result["exit_code"], output=result["output"])
 
     def write_file(self, workspace_id: str, path: str, content: str):
-        response = self._request("POST", f"workspaces/{workspace_id}/write_file", json={"path": path, "content": content})
-        return response.json()
+        return self._request("POST", f"workspaces/{workspace_id}/write_file", json={"path": path, "content": content})
     
     def read_file(self, workspace_id: str, path: str):
-        response = self._request("POST", f"workspaces/{workspace_id}/read_file", json={"path": path})
-        return response.json()
+        return self._request("POST", f"workspaces/{workspace_id}/read_file", json={"path": path})
   
