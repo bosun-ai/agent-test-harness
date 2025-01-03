@@ -138,8 +138,8 @@ class WorkspaceProvider:
         return self._request("POST", f"workspaces/{workspace_id}/cmd", json={"cmd": command, "env": env, "timeout": timeout})
 
     def run_command_with_output(self, workspace_id: str, command: str, env: dict = None) -> CommandOutput:
-        result = self._request("POST", f"{self.base_url}/workspaces/{workspace_id}/cmd_with_output", json={
-            "command": command,
+        result = self._request("POST", f"workspaces/{workspace_id}/cmd_with_output", json={
+            "cmd": command,
             "env": env or {}
         })
         return CommandOutput(exit_code=result["exit_code"], output=result["output"])
