@@ -48,7 +48,7 @@ class Cli:
                     "name": self.args.repository
                 }],
                 "runs": 1,
-                "results_path": "results"
+                "results_path": "tmp/results"
             }
         else:
             # Handle partial override

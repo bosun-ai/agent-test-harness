@@ -70,12 +70,8 @@ class WorkspaceProvider:
         while True:
             time.sleep(0.2)
             try:
-                response = self._request("GET", "health")
-                match response.status_code:
-                    case 200:
-                        break
-                    case _:
-                        raise Exception(f"Workspace provider returned unexpected status code: {response.status_code}")
+                self._request("GET", "health")
+                break
             except requests.exceptions.ConnectionError:
                 pass
             except Exception as e:
