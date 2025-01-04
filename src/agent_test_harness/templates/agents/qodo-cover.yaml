@@ -8,7 +8,7 @@ setup_script: |
 command: |
   echo "Running cover agent (LLM: $OPENAI_API_BASE, API_KEY: $OPENAI_API_KEY)" >> /tmp/setup.log;
   env >> /tmp/setup.log;
-  cd /todolist && /root/.local/bin/cover-agent \
+  cd $PROJECT_ROOT && /root/.local/bin/cover-agent \
     --source-file-path "$FILE_PATH" \
     --test-file-path "$TEST_FILE_PATH" \
     --project-root "$PROJECT_ROOT" \
