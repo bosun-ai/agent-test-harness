@@ -59,11 +59,30 @@ class AgentTestBenchmark:
         self.results["initial_coverage_tool_output"] = self.get_test_coverage()
         logging.info("Running agent...")
         start_time = time.time()
-        self.results["agent_output"] = self.run_agent()
+
+        env = self.environment_variables()
+        log = ""
+        self.results["agent_output"] = log
+
+        for file, test_file in self.files:
+            log += f"Running agent on file {file}\n"
+            this_env = {**env, "FILE_PATH": file, "TEST_FILE_PATH": test_file}
+            result = self.run_command_in_workdir(self.agent["command"], this_env)
+            log += result.output
+
+            logging.info("Running coverage tool again...")
+            test_result = self.run_test_coverage()
+            coverage_result = self.read_test_coverage()
+
+            if coverage_result.succeeded():
+                self.results["final_coverage_tool_output"] = coverage_result.output
+
+            if test_result.failed():
+                logging.info("Test command failed. Stopping benchmark...")
+                break
+
         end_time = time.time()
         self.results["agent_execution_time"] = end_time - start_time
-        logging.info("Running coverage tool again...")
-        self.results["final_coverage_tool_output"] = self.get_test_coverage()
         logging.info("Running git diff...")
         self.results["git_diff"] = self.run_git_diff()
         logging.info("Getting LLM metrics...")
@@ -95,27 +114,21 @@ class AgentTestBenchmark:
             raise Exception(f"Failed to establish initial git ref: {output.output}")
         self.initial_git_ref = output.output.strip()
 
+    def run_test_coverage(self):
+        return self.run_command_in_workdir(self.repository["test_command"])
+
+    def read_test_coverage(self):
+        return self.run_command_in_workdir(f'cat {self.repository["coverage_report_path"]}')
+
     def get_test_coverage(self):
-        test_run = self.run_command_in_workdir(self.repository["test_command"])
+        test_run = self.run_test_coverage()
         if test_run.failed():
             raise Exception(f"Test command failed: {test_run.output}")
             
-        coverage_output = self.run_command_in_workdir(f'cat {self.repository["coverage_report_path"]}')
+        coverage_output = self.read_test_coverage()
         if coverage_output.failed():
             raise Exception(f"Failed to read coverage report: {coverage_output.output}")
         return coverage_output.output
-
-    def run_agent(self):
-        env = self.environment_variables()
-        log = ""
-        for file, test_file in self.files:
-            log += f"Running agent on file {file}\n"
-            this_env = {**env, "FILE_PATH": file, "TEST_FILE_PATH": test_file}
-            result = self.run_command_in_workdir(self.agent["command"], this_env)
-            if result.failed():
-                raise Exception(f"Agent command failed: {result.output}")
-            log += result.output
-        return log
 
     def run_git_diff(self):
         result = self.run_command_in_workdir(f"git diff {self.initial_git_ref}")
