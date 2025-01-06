@@ -1,12 +1,12 @@
 name: kwaak
-version: "v0.1.6"
+version: "v0.1.9"
 setup_script: |
   apt update;
   apt install -y curl fd-find ripgrep gettext-base xz-utils;
   echo "Installed apt packages" >> /tmp/setup.log;
   ln -s $(which fdfind) /usr/local/bin/fd
   echo "Installed fd" >> /tmp/setup.log;
-  curl --proto '=https' --tlsv1.2 -LsSf https://github.com/bosun-ai/kwaak/releases/download/v0.1.6/kwaak-installer.sh | sh
+  curl --proto '=https' --tlsv1.2 -LsSf https://github.com/bosun-ai/kwaak/releases/download/v0.1.9/kwaak-installer.sh | sh
   echo "Set up kwaak agent: $?" >> /tmp/setup.log;
   source $HOME/.cargo/env
 
@@ -63,4 +63,4 @@ command: |
 
   cat /tmp/kwaak.toml | envsubst > /tmp/kwaak.rendered.toml
   cd $PROJECT_ROOT && \
-  kwaak -c /tmp/kwaak.rendered.toml -m run-agent -i "Write unit tests for $FILE_PATH until it has 100% coverage, make sure to add the files to $TEST_FILE_PATH. Do not modify the original code, only add tests. Do not modify other files than $TEST_FILE_PATH." 2>&1 | tee -a /tmp/kwaak.log
+  kwaak -c /tmp/kwaak.rendered.toml run-agent --initial-message "Write unit tests for $FILE_PATH until it has 100% coverage, make sure to add the files to $TEST_FILE_PATH. Do not modify the original code, only add tests. Do not modify other files than $TEST_FILE_PATH. If you added a test that you can't get to pass, remove it before stopping. This is not an interactive chat, so don't ask for extra information or any action from a user. Either use the tools or clean up failing tests and stop." 2>&1 | tee -a /tmp/kwaak.log
