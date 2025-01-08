@@ -20,6 +20,7 @@ packages = ["agent_test_harness"]
 
 [project.scripts]
 agent-test-harness = "agent_test_harness.main:main"
+agent-test-repository = "agent_test_harness.test_repository:main"
 
 [project.optional-dependencies]
 test = [

@@ -1,0 +1,15 @@
+name: gpt-migrate
+url: https://github.com/joshpxyne/gpt-migrate
+platform: python3-venv
+coverage_report_path: /repo/coverage.xml
+files:
+  - [gpt_migrate/ai.py, gpt_migrate/ai.py]
+  - [gpt_migrate/config.py, gpt_migrate/config.py]
+  - [gpt_migrate/main.py, gpt_migrate/main.py]
+  - [gpt_migrate/parser.py, gpt_migrate/parser.py]
+  - [gpt_migrate/utils.py, gpt_migrate/utils.py]
+  - [gpt_migrate/steps/__init__.py, gpt_migrate/steps/__init__.py]
+  - [gpt_migrate/steps/debug.py, gpt_migrate/steps/debug.py]
+  - [gpt_migrate/steps/migrate.py, gpt_migrate/steps/migrate.py]
+  - [gpt_migrate/steps/setup.py, gpt_migrate/steps/setup.py]
+  - [gpt_migrate/steps/test.py, gpt_migrate/steps/test.py]

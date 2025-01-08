@@ -1,0 +1,43 @@
+setup_script: |
+  apt-get update 2>&1 >> /tmp/repo-setup.log;
+  apt-get install -y python3 python3-pip python3-venv curl 2>&1 >> /tmp/repo-setup.log;
+  cd $PROJECT_ROOT;
+  python3 -m venv venv 2>&1 >> /tmp/repo-setup.log;
+  . venv/bin/activate 2>&1 >> /tmp/repo-setup.log;
+  pip install coverage pytest pytest-cov poetry 2>&1 >> /tmp/repo-setup.log;
+  if [ -f "pyproject.toml" ]; then
+    poetry config virtualenvs.create false && poetry install --no-root 2>&1 >> /tmp/repo-setup.log;
+  elif [ -f "requirements.txt" ]; then
+    pip install -r requirements.txt 2>&1 >> /tmp/repo-setup.log;
+  fi
+  if [ -f "requirements-dev.txt" ]; then
+    pip install -r requirements-dev.txt 2>&1 >> /tmp/repo-setup.log;
+  fi
+  # Create a placeholder test if none exist
+  cd $PROJECT_ROOT;
+  if ! find $PROJECT_ROOT -type f \( -name "test_*.py" -o -name "*_test.py" \) -not -path "*/venv/*" | grep -q .; then
+    echo "Creating placeholder test" >> /tmp/repo-setup.log;
+    mkdir -p tests;
+    cat > tests/test_placeholder.py << 'EOL'
+  import pytest
+
+  def test_placeholder():
+      """
+      This is a placeholder test created by the test harness.
+      It ensures that coverage reporting works even when no actual tests exist.
+      """
+      assert True
+  EOL
+    echo "Created tests/test_placeholder.py" >> /tmp/repo-setup.log;
+  else
+    echo "Found existing tests" >> /tmp/repo-setup.log;
+  fi
+  find $PROJECT_ROOT -type f \( -name "test_*.py" -o -name "*_test.py" \) -not -path "*/venv/*" >> /tmp/repo-setup.log;
+
+test_command: |
+  cd $PROJECT_ROOT && \
+  . venv/bin/activate && \
+  PYTHONPATH=$PROJECT_ROOT pytest --cov=. --cov-report=xml && \
+  coverage xml
+
+coverage_report_path: $PROJECT_ROOT/coverage.xml
