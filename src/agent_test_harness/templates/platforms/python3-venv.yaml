@@ -34,10 +34,16 @@ setup_script: |
   fi
   find $PROJECT_ROOT -type f \( -name "test_*.py" -o -name "*_test.py" \) -not -path "*/venv/*" >> /tmp/repo-setup.log;
 
-test_command: |
-  cd $PROJECT_ROOT && \
-  . venv/bin/activate && \
-  PYTHONPATH=$PROJECT_ROOT pytest --cov=. --cov-report=xml && \
+  # Create test script
+  cat > /usr/local/bin/run_tests.sh << 'EOL'
+  #!/bin/bash
+  cd $PROJECT_ROOT
+  . venv/bin/activate
+  PYTHONPATH=$PROJECT_ROOT pytest --cov=. --cov-report=xml
   coverage xml
+  EOL
+  chmod +x /usr/local/bin/run_tests.sh
+
+test_command: /usr/local/bin/run_tests.sh
 
 coverage_report_path: $PROJECT_ROOT/coverage.xml
