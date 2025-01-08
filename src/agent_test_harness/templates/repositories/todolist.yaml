@@ -9,7 +9,7 @@ setup_script: |
   cd /todolist;
   npm install && echo "Installed npm packages" >> /tmp/setup.log;
 test_command: npm test -- --coverage --watchAll=false --bail=1 -u --coverageReporters=cobertura
-coverage_report_path: /todolist/coverage/cobertura-coverage.xml
+coverage_report_path: $PROJECT_ROOT/coverage/cobertura-coverage.xml
 files:
   - [src/AddItem.tsx, src/AddItem.test.tsx]
   - [src/App.tsx, src/App.test.tsx]

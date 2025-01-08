@@ -10,7 +10,7 @@ setup_script: |
   npm install -g pnpm@8.6.7 && echo "Installed pnpm" >> /tmp/setup.log;
   pnpm install && pnpm install @vitest/coverage-v8 && echo "Installed pnpm packages" >> /tmp/setup.log;
 test_command: pnpm --filter "./agent" exec vitest run --coverage --coverage.reporter cobertura --coverage.reportOnFailure true
-coverage_report_path: /cody/agent/coverage/cobertura-coverage.xml
+coverage_report_path: $PROJECT_ROOT/agent/coverage/cobertura-coverage.xml
 files:
   # We want to include all files that have more than a hundred lines and that have less than 60% coverage.
   - [agent/src/AgentAuthHandler.ts, agent/src/AgentAuthHandler.test.ts]

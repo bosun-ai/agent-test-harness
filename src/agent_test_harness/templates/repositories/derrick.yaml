@@ -1,7 +1,7 @@
  name: derrick
  url: https://github.com/bosun-ai/derrick.git
  platform: rust-tarpaulin
- coverage_report_path: /derrick/cobertura.xml
+ coverage_report_path: $PROJECT_ROOT/cobertura.xml
  files:
    - [src/config.rs, src/config.rs]
    - [src/docker.rs, src/docker.rs]

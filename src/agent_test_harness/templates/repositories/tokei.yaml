@@ -1,7 +1,7 @@
 name: tokei
 url: https://github.com/XAMPPRocky/tokei
 platform: rust-tarpaulin
-coverage_report_path: /tokei/cobertura.xml
+coverage_report_path: $PROJECT_ROOT/cobertura.xml
 files:
   - [src/main.rs, src/main.rs]
   - [src/cli.rs, src/cli.rs]

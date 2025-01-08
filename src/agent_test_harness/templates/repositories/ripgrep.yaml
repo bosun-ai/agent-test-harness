@@ -1,7 +1,7 @@
 name: ripgrep 
 url: https://github.com/BurntSushi/ripgrep
 platform: rust-tarpaulin
-coverage_report_path: /ripgrep/cobertura.xml
+coverage_report_path: $PROJECT_ROOT/cobertura.xml
 files:
   - [crates/cli/src/decompress.rs, crates/cli/src/decompress.rs]
   - [crates/cli/src/lib.rs, crates/cli/src/lib.rs]
