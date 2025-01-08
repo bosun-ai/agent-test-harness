@@ -82,7 +82,6 @@ class Cli:
         try:
             agent_test_harness = AgentTestHarness(self.config)
             results = agent_test_harness.benchmark_agents()
-            print(json.dumps(results, indent=2))
             self.export_results(results)
         except Exception as e:
             logging.error(f"Error: {e}\n{traceback.format_exc()}")
