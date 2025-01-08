@@ -47,14 +47,14 @@ command: |
   source $HOME/.cargo/env
   
   # Determining project language by examining the files in the $PROJECT_ROOT. If there's a package.json, it's a Node.js project.
-  # if there's a Cargo.toml, it's a Rust project. If there's a requirements.txt, it's a Python project.
+  # if there's a Cargo.toml, it's a Rust project. If there's a requirements.txt or pyproject.toml, it's a Python project.
   if [ -f $PROJECT_ROOT/package.json ]; then
     echo "Detected Node.js project" >> /tmp/setup.log;
     export LANGUAGE="Typescript"
   elif [ -f $PROJECT_ROOT/Cargo.toml ]; then
     echo "Detected Rust project" >> /tmp/setup.log;
     export LANGUAGE="Rust"
-  elif [ -f $PROJECT_ROOT/requirements.txt ]; then
+  elif find $PROJECT_ROOT -type f \( -name "requirements.txt" -o -name "pyproject.toml" \) | grep -q .; then
     echo "Detected Python project" >> /tmp/setup.log;
     export LANGUAGE="Python"
   fi
