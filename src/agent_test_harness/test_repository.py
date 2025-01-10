@@ -7,24 +7,27 @@ import sys
 import yaml
 import xml.etree.ElementTree as ET
 from pathlib import Path
+from .benchmark_config import BenchmarkConfig
 
-def load_repository_template(repo_name: str) -> dict:
-    """Load the repository template YAML file."""
-    template_path = Path(__file__).parent / "templates" / "repositories" / f"{repo_name}.yaml"
-    if not template_path.exists():
-        raise FileNotFoundError(f"Repository template not found: {repo_name}")
+def load_repository_config(repo_name: str, platform_name: str = None) -> dict:
+    """Load the repository configuration using BenchmarkConfig."""
+    config = {
+        "agents": [{
+            "name": "dummy",  # Add dummy agent to satisfy validation
+            "type": "dummy"
+        }],
+        "repositories": [{
+            "name": repo_name
+        }],
+        "runs": 1,
+        "results_path": "dummy"  # Not used in this context
+    }
     
-    with open(template_path) as f:
-        return yaml.safe_load(f)
-
-def load_platform_template(platform_name: str) -> dict:
-    """Load the platform template YAML file."""
-    template_path = Path(__file__).parent / "templates" / "platforms" / f"{platform_name}.yaml"
-    if not template_path.exists():
-        raise FileNotFoundError(f"Platform template not found: {platform_name}")
+    if platform_name:
+        config["repositories"][0]["platform"] = platform_name
     
-    with open(template_path) as f:
-        return yaml.safe_load(f)
+    benchmark_config = BenchmarkConfig(config)
+    return benchmark_config.config["repositories"][0]
 
 def run_docker_command(command: str, check: bool = True, print_output: bool = False) -> subprocess.CompletedProcess:
     """Run a docker command and optionally check its return code."""
@@ -98,9 +101,8 @@ def main():
     parser.add_argument('--debug', action='store_true', help='Print debug output')
     args = parser.parse_args()
 
-    # Load templates
-    repo_template = load_repository_template(args.repository)
-    platform_template = load_platform_template(repo_template['platform'])
+    # Load repository config
+    repo_config = load_repository_config(args.repository)
 
     # Start container
     container_name = f"test-{args.repository}"
@@ -115,7 +117,7 @@ def main():
         # Clone repository
         run_docker_command(
             f"docker exec {container_name} bash -c '"
-            f"git clone {repo_template['url']} /repo'"
+            f"git clone {repo_config['url']} /repo'"
         )
 
         # Verify repository setup
@@ -131,7 +133,7 @@ def main():
             )
 
         # Run setup script
-        setup_script = platform_template['setup_script'].replace('$PROJECT_ROOT', '/repo')
+        setup_script = repo_config['setup_script'].replace('$PROJECT_ROOT', '/repo')
         run_docker_command(
             f"docker exec {container_name} bash -c '{setup_script}'",
             print_output=args.debug
@@ -145,7 +147,7 @@ def main():
             )
 
         # Run test command
-        test_command = platform_template['test_command'].replace('$PROJECT_ROOT', '/repo')
+        test_command = repo_config['test_command'].replace('$PROJECT_ROOT', '/repo')
         run_docker_command(
             f"docker exec -w /repo {container_name} bash -c '{test_command}'",
             print_output=True  # Always show test output
@@ -160,7 +162,7 @@ def main():
             )
 
         # Verify coverage report
-        if not verify_coverage_report(container_name, repo_template['coverage_report_path'].replace('$PROJECT_ROOT', '/repo')):
+        if not verify_coverage_report(container_name, repo_config['coverage_report_path'].replace('$PROJECT_ROOT', '/repo')):
             print("Coverage report verification failed")
             sys.exit(1)
 
