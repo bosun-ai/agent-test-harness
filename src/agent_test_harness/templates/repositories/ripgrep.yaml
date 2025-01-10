@@ -1,6 +1,6 @@
 name: ripgrep 
 url: https://github.com/BurntSushi/ripgrep
-platform: rust-tarpaulin
+platform: rust-llvm-cov
 coverage_report_path: $PROJECT_ROOT/cobertura.xml
 files:
   - [crates/cli/src/decompress.rs, crates/cli/src/decompress.rs]

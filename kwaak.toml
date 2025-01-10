@@ -5,7 +5,7 @@ project_name = "agent-test-harness"
 language = "Python"
 
 ## Optional: Connect kwaak to tavily to enable it to search the web
-#tavily_api_key = "env:TAVILY_API_KEY"
+tavily_api_key = "env:TAVILY_API_KEY"
 
 ## Optional: Override the tool executor. Valid options are `local` and `docker`
 ## Since agents write code, running kwaak in a sandbox is highly recommended
@@ -30,22 +30,22 @@ coverage = "REQUIRED"
 owner = "bosun-ai"
 repository = "agent-test-harness"
 main_branch = "main"
-token = "env:KWAAK_GITHUB_TOKEN"
+token = "env:GITHUB_TOKEN"
 
 ## Kwaak uses different LLMs for different tasks. As a rule of thumb, tasks that happen often (like indexing, summarizing) require a small, fast model
 ## and tasks that happen less often (like completion) can use a larger, more accurate model.
 [llm.indexing]
-api_key = "env:KWAAK_OPENAI_API_KEY"
+api_key = "env:OPENAI_API_KEY"
 provider = "OpenAI"
 prompt_model = "gpt-4o-mini"
 
 [llm.query]
-api_key = "env:KWAAK_OPENAI_API_KEY"
+api_key = "env:OPENAI_API_KEY"
 provider = "OpenAI"
 prompt_model = "gpt-4o"
 
 [llm.embedding]
-api_key = "env:KWAAK_OPENAI_API_KEY"
+api_key = "env:OPENAI_API_KEY"
 provider = "OpenAI"
 embedding_model = "text-embedding-3-large"
 

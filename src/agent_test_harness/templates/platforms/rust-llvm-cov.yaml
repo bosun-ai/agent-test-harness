@@ -1,0 +1,12 @@
+setup_script: |
+  apt-get update 2>&1 >> /tmp/repo-setup.log;
+  apt-get install -y build-essential lld curl pkg-config libssl-dev rustup 2>&1 >> /tmp/repo-setup.log;
+  cd $PROJECT_ROOT;
+  rustup default stable 2>&1 >> /tmp/repo-setup.log;
+  echo "Install rust default was successful: $?" >> /tmp/repo-setup.log;
+  rustup run stable cargo install cargo-llvm-cov --locked 2>&1 >> /tmp/repo-setup.log;
+  echo "Install llvm-cov was successful: $?" >> /tmp/repo-setup.log;
+  rustup run stable cargo llvm-cov --cobertura --output-path $PROJECT_ROOT/cobertura.xml 2>&1 >> /tmp/repo-setup.log
+  echo "Run llvm-cov was successful: $?" >> /tmp/repo-setup.log;
+test_command: cargo llvm-cov --cobertura --output-path $PROJECT_ROOT/cobertura.xml 2>&1
+coverage_report_path: $PROJECT_ROOT/cobertura.xml

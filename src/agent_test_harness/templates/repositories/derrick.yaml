@@ -1,6 +1,6 @@
  name: derrick
  url: https://github.com/bosun-ai/derrick.git
- platform: rust-tarpaulin
+ platform: rust-llvm-cov
  coverage_report_path: $PROJECT_ROOT/cobertura.xml
  files:
    - [src/config.rs, src/config.rs]
