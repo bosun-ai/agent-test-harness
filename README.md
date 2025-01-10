@@ -118,7 +118,6 @@ We need to host that server somewhere.
 
 #### Medium <100k lines
 
-- mermaid https://github.com/mermaid-js/mermaid
 - cody(agent) https://github.com/sourcegraph/cody
 
 #### Large
