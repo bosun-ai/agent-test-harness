@@ -1,0 +1,54 @@
+name: django
+url: https://github.com/django/django
+setup_script: |
+  # Update system and install dependencies
+  apt-get update 2>&1 >> /tmp/repo-setup.log
+  apt-get install -y wget git build-essential libffi-dev libtiff-dev python3 python3-pip python-is-python3 jq curl locales locales-all tzdata 2>&1 >> /tmp/repo-setup.log
+  
+  # Install Miniconda
+  wget 'https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh' -O miniconda.sh 2>&1 >> /tmp/repo-setup.log
+  bash miniconda.sh -b -p /opt/miniconda3 2>&1 >> /tmp/repo-setup.log
+  
+  echo "Installed Miniconda" >> /tmp/repo-setup.log
+  
+  # Initialize conda in .bashrc and profile.d
+  /opt/miniconda3/bin/conda init bash 2>&1 >> /tmp/repo-setup.log
+  
+  echo "Initialized conda in .bashrc" >> /tmp/repo-setup.log
+  eval "$(/opt/miniconda3/bin/conda shell.bash hook)"
+
+
+  echo "Conda: $(which conda)" >> /tmp/repo-setup.log;
+
+  # Configure conda
+  conda config --append channels conda-forge 2>&1 >> /tmp/repo-setup.log
+  echo "Configured conda" >> /tmp/repo-setup.log
+  
+  # Create and activate conda environment
+  conda create -n test_env python=3.9 -y 2>&1 >> /tmp/repo-setup.log
+  conda activate test_env
+  echo "Created and activated conda environment" >> /tmp/repo-setup.log
+  
+  # Setup repository
+  cd $PROJECT_ROOT
+  chmod -R 777 .
+  git remote remove origin
+  echo "Removed origin" >> /tmp/repo-setup.log
+  
+  # Install package and test dependencies
+  cd $PROJECT_ROOT && python -m pip install -e . 2>&1 >> /tmp/repo-setup.log
+  echo "Installed package and test dependencies" >> /tmp/repo-setup.log
+  
+  # Create test script
+  echo "#!/bin/bash" > /usr/local/bin/run_tests.sh
+  echo "eval \"\$(/opt/miniconda3/bin/conda shell.bash hook)\"" >> /usr/local/bin/run_tests.sh
+  echo "cd $PROJECT_ROOT" >> /usr/local/bin/run_tests.sh
+  echo "conda activate test_env" >> /usr/local/bin/run_tests.sh
+  echo "./tests/runtests.py --verbosity 2 --settings=test_sqlite --parallel 1" >> /usr/local/bin/run_tests.sh
+
+  echo "Created test script" >> /tmp/repo-setup.log
+
+  chmod +x /usr/local/bin/run_tests.sh
+  cat /tmp/repo-setup.log
+test_command: /usr/local/bin/run_tests.sh
+coverage_report_path: $PROJECT_ROOT/coverage.xml
