@@ -96,17 +96,23 @@ def verify_coverage_report(container_id: str, coverage_path: str) -> bool:
             os.remove(temp_path)
 
 def main():
-    parser = argparse.ArgumentParser(description='Test a repository template')
-    parser.add_argument('repository', help='Name of the repository template to test')
+    parser = argparse.ArgumentParser(description='Test a repository setup')
+    parser.add_argument('repository', help='Name of the repository to test')
     parser.add_argument('--debug', action='store_true', help='Print debug output')
     args = parser.parse_args()
 
     # Load repository config
     repo_config = load_repository_config(args.repository)
 
+    # Load platform config if specified, otherwise use repository config
+    if 'platform' in repo_config:
+        platform_config = load_repository_config(repo_config['platform'])
+    else:
+        platform_config = repo_config
+
     # Start container
-    container_name = f"test-{args.repository}"
-    run_docker_command(f"docker rm -f {container_name}", check=False)  # Clean up any existing container
+    container_name = f"test-{args.repository.replace('/', '-')}"  # Sanitize container name
+    run_docker_command(f"docker rm -f {container_name}", check=False)
     run_docker_command(
         f"docker run -d --name {container_name} bosunai/build-baseimage sleep infinity"
     )
@@ -133,7 +139,7 @@ def main():
             )
 
         # Run setup script
-        setup_script = repo_config['setup_script'].replace('$PROJECT_ROOT', '/repo')
+        setup_script = platform_config['setup_script'].replace('$PROJECT_ROOT', '/repo')
         run_docker_command(
             f"docker exec {container_name} bash -c '{setup_script}'",
             print_output=args.debug

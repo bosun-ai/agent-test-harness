@@ -4,7 +4,7 @@ setup_script: |
   cd $PROJECT_ROOT;
   python3 -m venv venv 2>&1 >> /tmp/repo-setup.log;
   . venv/bin/activate 2>&1 >> /tmp/repo-setup.log;
-  pip install coverage pytest pytest-cov poetry 2>&1 >> /tmp/repo-setup.log;
+  pip install coverage pytest pytest-cov poetry pytest-asyncio pyyaml httpx 2>&1 >> /tmp/repo-setup.log;
   if [ -f "pyproject.toml" ]; then
     poetry config virtualenvs.create false && poetry install --no-root 2>&1 >> /tmp/repo-setup.log;
   elif [ -f "requirements.txt" ]; then

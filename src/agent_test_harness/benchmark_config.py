@@ -45,10 +45,18 @@ class BenchmarkConfig:
 
     def _load_template(self, template_type: str, name: str) -> Optional[Dict[str, Any]]:
         """Load a template configuration file"""
+        # First try direct path
         template_path = os.path.join(self.templates_dir, template_type, f"{name}.yaml")
         if os.path.exists(template_path):
             with open(template_path, "r") as f:
                 return yaml.safe_load(f)
+        
+        # Then try as a path with subdirectories
+        template_path = os.path.join(self.templates_dir, template_type, name + ".yaml")
+        if os.path.exists(template_path):
+            with open(template_path, "r") as f:
+                return yaml.safe_load(f)
+                
         return None
 
     def preprocess_config(self, config: Dict[str, Any]) -> Dict[str, Any]:

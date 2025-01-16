@@ -16,9 +16,9 @@ tavily_api_key = "env:TAVILY_API_KEY"
 ## At the moment, the format of the output does not matter.
 [commands]
 # Example: test = "cargo test --no-fail-fast --color=never"
-test = "REQUIRED"
+test = "uv run agent-test-repository"
 # Example: coverage = "cargo tarpaulin --skip-clean --target-dir target/debug --engine llvm"
-coverage = "REQUIRED"
+coverage = "uv run agent-test-repository"
 ## Optional: Lint and fix command. This command is run after each completion cycle, before committing the code.
 ## Recommended to use, as it avoids the LLM getting distracted by linting issues
 # Example: lint_and_fix = "cargo clippy --fix --allow-dirty --allow-staged && cargo fmt"
