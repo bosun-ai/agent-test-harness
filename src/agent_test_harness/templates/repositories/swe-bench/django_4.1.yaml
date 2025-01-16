@@ -31,7 +31,11 @@ setup_script: |
   
   # Setup repository
   cd $PROJECT_ROOT
+  
+  git reset --hard 4.1
+
   chmod -R 777 .
+  
   git remote remove origin
   echo "Removed origin" >> /tmp/repo-setup.log
   
@@ -40,11 +44,19 @@ setup_script: |
   echo "Installed package and test dependencies" >> /tmp/repo-setup.log
   
   # Create test script
-  echo "#!/bin/bash" > /usr/local/bin/run_tests.sh
-  echo "eval \"\$(/opt/miniconda3/bin/conda shell.bash hook)\"" >> /usr/local/bin/run_tests.sh
-  echo "cd $PROJECT_ROOT" >> /usr/local/bin/run_tests.sh
-  echo "conda activate test_env" >> /usr/local/bin/run_tests.sh
-  echo "./tests/runtests.py --verbosity 2 --settings=test_sqlite --parallel 1" >> /usr/local/bin/run_tests.sh
+  cat > /usr/local/bin/run_tests.sh << ''EOL''
+
+  #!/bin/bash
+
+  cd $PROJECT_ROOT
+
+  eval "$(/opt/miniconda3/bin/conda shell.bash hook)"
+
+  conda activate test_env
+
+  ./tests/runtests.py --verbosity 2 --settings=test_sqlite --parallel 1
+
+  EOL
 
   echo "Created test script" >> /tmp/repo-setup.log
 
