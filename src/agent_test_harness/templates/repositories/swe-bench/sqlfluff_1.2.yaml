@@ -1,5 +1,5 @@
-name: django
-url: https://github.com/django/django
+name: sqlfluff
+url: https://github.com/sqlfluff/sqlfluff
 setup_script: '# Update system and install dependencies
 
   apt-get update 2>&1 >> /tmp/repo-setup.log
@@ -64,7 +64,7 @@ setup_script: '# Update system and install dependencies
 
   conda activate test_env
 
-  ./tests/runtests.py --verbosity 2 --settings=test_sqlite --parallel 1
+  pytest -rA
 
   EOL
 

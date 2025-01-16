@@ -1,5 +1,5 @@
-name: django
-url: https://github.com/django/django
+name: xarray
+url: https://github.com/pydata/xarray
 setup_script: '# Update system and install dependencies
 
   apt-get update 2>&1 >> /tmp/repo-setup.log
@@ -30,11 +30,15 @@ setup_script: '# Update system and install dependencies
 
   # Create and activate conda environment
 
-  conda create -n test_env python=3.9 -y 2>&1 >> /tmp/repo-setup.log
+  conda create -n test_env python=3.10 -y 2>&1 >> /tmp/repo-setup.log
 
   conda activate test_env
 
   echo "Created and activated conda environment" >> /tmp/repo-setup.log
+
+  pip install numpy==1.23.0 packaging==23.1 pandas==1.5.3 pytest==7.4.0 python-dateutil==2.8.2
+  pytz==2023.3 six==1.16.0 scipy==1.11.1 setuptools==68.0.0 dask==2022.8.1 2>&1 >>
+  /tmp/repo-setup.log
 
   # Setup repository
 
@@ -64,7 +68,7 @@ setup_script: '# Update system and install dependencies
 
   conda activate test_env
 
-  ./tests/runtests.py --verbosity 2 --settings=test_sqlite --parallel 1
+  pytest -rA
 
   EOL
 

@@ -1,5 +1,5 @@
-name: django
-url: https://github.com/django/django
+name: matplotlib
+url: https://github.com/matplotlib/matplotlib
 setup_script: '# Update system and install dependencies
 
   apt-get update 2>&1 >> /tmp/repo-setup.log
@@ -30,11 +30,16 @@ setup_script: '# Update system and install dependencies
 
   # Create and activate conda environment
 
-  conda create -n test_env python=3.9 -y 2>&1 >> /tmp/repo-setup.log
+  conda create -n test_env python=3.11 -y 2>&1 >> /tmp/repo-setup.log
 
   conda activate test_env
 
   echo "Created and activated conda environment" >> /tmp/repo-setup.log
+
+  pip install contourpy==1.1.0 cycler==0.11.0 fonttools==4.42.1 ghostscript kiwisolver==1.4.5
+  numpy==1.25.2 packaging==23.1 pillow==10.0.0 pikepdf pyparsing==3.0.9 python-dateutil==2.8.2
+  six==1.16.0 setuptools==68.1.2 setuptools-scm==7.1.0 typing-extensions==4.7.1 2>&1
+  >> /tmp/repo-setup.log
 
   # Setup repository
 
@@ -45,6 +50,12 @@ setup_script: '# Update system and install dependencies
   git reset --hard $COMMIT_SHA
 
   git remote remove origin
+
+  # Pre-install steps
+
+  apt-get -y update && apt-get -y upgrade && DEBIAN_FRONTEND=noninteractive apt-get
+  install -y imagemagick ffmpeg texlive texlive-latex-extra texlive-fonts-recommended
+  texlive-xetex texlive-luatex cm-super dvipng 2>&1 >> /tmp/repo-setup.log
 
   # Install package
 
@@ -64,7 +75,7 @@ setup_script: '# Update system and install dependencies
 
   conda activate test_env
 
-  ./tests/runtests.py --verbosity 2 --settings=test_sqlite --parallel 1
+  pytest -rA
 
   EOL
 

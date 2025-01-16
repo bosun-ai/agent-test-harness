@@ -1,5 +1,5 @@
-name: django
-url: https://github.com/django/django
+name: sphinx
+url: https://github.com/sphinx-doc/sphinx
 setup_script: '# Update system and install dependencies
 
   apt-get update 2>&1 >> /tmp/repo-setup.log
@@ -36,6 +36,8 @@ setup_script: '# Update system and install dependencies
 
   echo "Created and activated conda environment" >> /tmp/repo-setup.log
 
+  pip install tox==4.16.0 tox-current-env==0.0.11 Jinja2==3.0.3 2>&1 >> /tmp/repo-setup.log
+
   # Setup repository
 
   cd $PROJECT_ROOT
@@ -46,9 +48,35 @@ setup_script: '# Update system and install dependencies
 
   git remote remove origin
 
+  # Pre-install steps
+
+  sed -i ''s/pytest/pytest -rA/'' tox.ini 2>&1 >> /tmp/repo-setup.log
+
+  sed -i ''s/Jinja2>=2.3/Jinja2<3.0/'' setup.py 2>&1 >> /tmp/repo-setup.log
+
+  sed -i ''s/sphinxcontrib-applehelp/sphinxcontrib-applehelp<=1.0.7/'' setup.py 2>&1
+  >> /tmp/repo-setup.log
+
+  sed -i ''s/sphinxcontrib-devhelp/sphinxcontrib-devhelp<=1.0.5/'' setup.py 2>&1 >>
+  /tmp/repo-setup.log
+
+  sed -i ''s/sphinxcontrib-qthelp/sphinxcontrib-qthelp<=1.0.6/'' setup.py 2>&1 >>
+  /tmp/repo-setup.log
+
+  sed -i ''s/alabaster>=0.7,<0.8/alabaster>=0.7,<0.7.12/'' setup.py 2>&1 >> /tmp/repo-setup.log
+
+  sed -i "s/''packaging'',/''packaging'', ''markupsafe<=2.0.1'',/" setup.py 2>&1 >>
+  /tmp/repo-setup.log
+
+  sed -i ''s/sphinxcontrib-htmlhelp>=2.0.0/sphinxcontrib-htmlhelp>=2.0.0,<=2.0.4/''
+  setup.py 2>&1 >> /tmp/repo-setup.log
+
+  sed -i ''s/sphinxcontrib-serializinghtml>=1.1.5/sphinxcontrib-serializinghtml>=1.1.5,<=1.1.9/''
+  setup.py 2>&1 >> /tmp/repo-setup.log
+
   # Install package
 
-  cd $PROJECT_ROOT && python -m pip install -e . 2>&1 >> /tmp/repo-setup.log
+  cd $PROJECT_ROOT && python -m pip install -e .[test] 2>&1 >> /tmp/repo-setup.log
 
   echo "Installed package and test dependencies" >> /tmp/repo-setup.log
 
@@ -64,7 +92,7 @@ setup_script: '# Update system and install dependencies
 
   conda activate test_env
 
-  ./tests/runtests.py --verbosity 2 --settings=test_sqlite --parallel 1
+  tox --current-env -epy39 -v --
 
   EOL
 

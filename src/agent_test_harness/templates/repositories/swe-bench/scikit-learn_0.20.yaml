@@ -1,5 +1,5 @@
-name: django
-url: https://github.com/django/django
+name: scikit-learn
+url: https://github.com/scikit-learn/scikit-learn
 setup_script: '# Update system and install dependencies
 
   apt-get update 2>&1 >> /tmp/repo-setup.log
@@ -30,11 +30,13 @@ setup_script: '# Update system and install dependencies
 
   # Create and activate conda environment
 
-  conda create -n test_env python=3.9 -y 2>&1 >> /tmp/repo-setup.log
+  conda create -n test_env python=3.6 -y 2>&1 >> /tmp/repo-setup.log
 
   conda activate test_env
 
   echo "Created and activated conda environment" >> /tmp/repo-setup.log
+
+  pip install cython numpy==1.19.2 setuptools scipy==1.5.2 2>&1 >> /tmp/repo-setup.log
 
   # Setup repository
 
@@ -48,7 +50,8 @@ setup_script: '# Update system and install dependencies
 
   # Install package
 
-  cd $PROJECT_ROOT && python -m pip install -e . 2>&1 >> /tmp/repo-setup.log
+  cd $PROJECT_ROOT && python -m pip install -v --no-use-pep517 --no-build-isolation
+  -e . 2>&1 >> /tmp/repo-setup.log
 
   echo "Installed package and test dependencies" >> /tmp/repo-setup.log
 
@@ -64,7 +67,7 @@ setup_script: '# Update system and install dependencies
 
   conda activate test_env
 
-  ./tests/runtests.py --verbosity 2 --settings=test_sqlite --parallel 1
+  pytest -rA
 
   EOL
 

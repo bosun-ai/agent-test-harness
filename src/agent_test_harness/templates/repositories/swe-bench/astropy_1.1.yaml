@@ -1,5 +1,5 @@
-name: django
-url: https://github.com/django/django
+name: astropy
+url: https://github.com/astropy/astropy
 setup_script: '# Update system and install dependencies
 
   apt-get update 2>&1 >> /tmp/repo-setup.log
@@ -30,11 +30,18 @@ setup_script: '# Update system and install dependencies
 
   # Create and activate conda environment
 
-  conda create -n test_env python=3.9 -y 2>&1 >> /tmp/repo-setup.log
+  conda create -n test_env python=3.6 -y 2>&1 >> /tmp/repo-setup.log
 
   conda activate test_env
 
   echo "Created and activated conda environment" >> /tmp/repo-setup.log
+
+  pip install attrs==17.3.0 exceptiongroup==0.0.0a0 execnet==1.5.0 hypothesis==3.44.2
+  cython==0.27.3 jinja2==2.10 MarkupSafe==1.0 numpy==1.16.0 packaging==16.8 pluggy==0.6.0
+  psutil==5.4.2 pyerfa==1.7.0 pytest-arraydiff==0.1 pytest-astropy-header==0.1 pytest-astropy==0.2.1
+  pytest-cov==2.5.1 pytest-doctestplus==0.1.2 pytest-filter-subpackage==0.1 pytest-forked==0.2
+  pytest-mock==1.6.3 pytest-openfiles==0.2.0 pytest-remotedata==0.2.0 pytest-xdist==1.20.1
+  pytest==3.3.1 PyYAML==3.12 sortedcontainers==1.5.9 tomli==0.2.0 2>&1 >> /tmp/repo-setup.log
 
   # Setup repository
 
@@ -48,7 +55,7 @@ setup_script: '# Update system and install dependencies
 
   # Install package
 
-  cd $PROJECT_ROOT && python -m pip install -e . 2>&1 >> /tmp/repo-setup.log
+  cd $PROJECT_ROOT && python -m pip install -e .[test] --verbose 2>&1 >> /tmp/repo-setup.log
 
   echo "Installed package and test dependencies" >> /tmp/repo-setup.log
 
@@ -64,7 +71,7 @@ setup_script: '# Update system and install dependencies
 
   conda activate test_env
 
-  ./tests/runtests.py --verbosity 2 --settings=test_sqlite --parallel 1
+  pytest -rA -vv -o console_output_style=classic --tb=no
 
   EOL
 

@@ -30,7 +30,7 @@ setup_script: '# Update system and install dependencies
 
   # Create and activate conda environment
 
-  conda create -n test_env python=3.9 -y 2>&1 >> /tmp/repo-setup.log
+  conda create -n test_env python=3.5 -y 2>&1 >> /tmp/repo-setup.log
 
   conda activate test_env
 
@@ -48,7 +48,7 @@ setup_script: '# Update system and install dependencies
 
   # Install package
 
-  cd $PROJECT_ROOT && python -m pip install -e . 2>&1 >> /tmp/repo-setup.log
+  cd $PROJECT_ROOT && python setup.py install 2>&1 >> /tmp/repo-setup.log
 
   echo "Installed package and test dependencies" >> /tmp/repo-setup.log
 

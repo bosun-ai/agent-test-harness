@@ -30,11 +30,13 @@ setup_script: '# Update system and install dependencies
 
   # Create and activate conda environment
 
-  conda create -n test_env python=3.9 -y 2>&1 >> /tmp/repo-setup.log
+  conda create -n test_env python=3.5 -y 2>&1 >> /tmp/repo-setup.log
 
   conda activate test_env
 
   echo "Created and activated conda environment" >> /tmp/repo-setup.log
+
+  pip install setuptools 2>&1 >> /tmp/repo-setup.log
 
   # Setup repository
 
@@ -46,9 +48,17 @@ setup_script: '# Update system and install dependencies
 
   git remote remove origin
 
+  # Pre-install steps
+
+  apt-get update && apt-get install -y locales 2>&1 >> /tmp/repo-setup.log
+
+  echo ''en_US UTF-8'' > /etc/locale.gen 2>&1 >> /tmp/repo-setup.log
+
+  locale-gen en_US.UTF-8 2>&1 >> /tmp/repo-setup.log
+
   # Install package
 
-  cd $PROJECT_ROOT && python -m pip install -e . 2>&1 >> /tmp/repo-setup.log
+  cd $PROJECT_ROOT && python setup.py install 2>&1 >> /tmp/repo-setup.log
 
   echo "Installed package and test dependencies" >> /tmp/repo-setup.log
 

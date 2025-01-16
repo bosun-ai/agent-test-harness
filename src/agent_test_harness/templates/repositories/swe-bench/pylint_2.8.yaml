@@ -1,5 +1,5 @@
-name: django
-url: https://github.com/django/django
+name: pylint
+url: https://github.com/pylint-dev/pylint
 setup_script: '# Update system and install dependencies
 
   apt-get update 2>&1 >> /tmp/repo-setup.log
@@ -36,6 +36,8 @@ setup_script: '# Update system and install dependencies
 
   echo "Created and activated conda environment" >> /tmp/repo-setup.log
 
+  pip install pyenchant==3.2 2>&1 >> /tmp/repo-setup.log
+
   # Setup repository
 
   cd $PROJECT_ROOT
@@ -45,6 +47,10 @@ setup_script: '# Update system and install dependencies
   git reset --hard $COMMIT_SHA
 
   git remote remove origin
+
+  # Pre-install steps
+
+  apt-get update && apt-get install -y libenchant-2-dev hunspell-en-us 2>&1 >> /tmp/repo-setup.log
 
   # Install package
 
@@ -64,7 +70,7 @@ setup_script: '# Update system and install dependencies
 
   conda activate test_env
 
-  ./tests/runtests.py --verbosity 2 --settings=test_sqlite --parallel 1
+  pytest -rA
 
   EOL
 

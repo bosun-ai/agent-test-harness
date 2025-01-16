@@ -1,0 +1,24 @@
+name: llama-stack
+url: https://github.com/meta-llama/llama-stack
+platform: python3-venv
+coverage_report_path: $PROJECT_ROOT/coverage.xml
+setup_script: |
+  apt-get update 2>&1 >> /tmp/repo-setup.log;
+  apt-get install -y python3 python3-pip python3-venv curl 2>&1 >> /tmp/repo-setup.log;
+  cd $PROJECT_ROOT;
+  python3 -m venv venv 2>&1 >> /tmp/repo-setup.log;
+  . venv/bin/activate 2>&1 >> /tmp/repo-setup.log;
+  pip install coverage pytest pytest-cov poetry pytest-asyncio pyyaml httpx 2>&1 >> /tmp/repo-setup.log;
+  if [ -f "pyproject.toml" ]; then
+    poetry config virtualenvs.create false && poetry install --no-root 2>&1 >> /tmp/repo-setup.log;
+  elif [ -f "requirements.txt" ]; then
+    pip install -r requirements.txt 2>&1 >> /tmp/repo-setup.log;
+  fi
+  if [ -f "requirements-dev.txt" ]; then
+    pip install -r requirements-dev.txt 2>&1 >> /tmp/repo-setup.log;
+  fi
+files:
+  - [llama_stack/cli/tests/test_stack_config.py, llama_stack/cli/tests/test_stack_config.py]
+  - [llama_stack/providers/inline/agents/meta_reference/tests/test_chat_agent.py, llama_stack/providers/inline/agents/meta_reference/tests/test_chat_agent.py]
+  - [llama_stack/providers/tests/__init__.py, llama_stack/providers/tests/__init__.py]
+  - [tests/test_placeholder.py, tests/test_placeholder.py]
