@@ -8,6 +8,7 @@ dependencies = [
     "pyaml>=24.9.0",
     "pycobertura>=3.3.2",
     "requests>=2.32.3",
+    "datasets>=2.16.1",
 ]
 
 [build-system]
@@ -21,6 +22,7 @@ packages = ["agent_test_harness"]
 [project.scripts]
 agent-test-harness = "agent_test_harness.main:main"
 agent-test-repository = "agent_test_harness.test_repository:main"
+agent-test-swe = "agent_test_harness.swe_bench:run_swe_bench"
 
 [project.optional-dependencies]
 test = [

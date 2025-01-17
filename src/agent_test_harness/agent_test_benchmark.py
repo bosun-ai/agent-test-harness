@@ -1,8 +1,17 @@
 import logging
 import time
+from dataclasses import dataclass
+from typing import Optional, Union
 
 from .llm_proxy import LLMProxy
 from .workspace_provider import WorkspaceProvider
+from .swe_bench_types import SWEBenchItem
+
+@dataclass
+class TestResult:
+    passed: list[str]
+    failed: list[str]
+    output: str
 
 class AgentTestBenchmark:
     run_name: str
@@ -16,8 +25,11 @@ class AgentTestBenchmark:
     initial_git_ref: str
     name: str
     repository_name: str
+    swebench_item: Optional[SWEBenchItem]
+    files: Optional[list]
 
-    def __init__(self, name: str, llm_proxy: LLMProxy, workspace_provider: WorkspaceProvider, agent: dict, repository: dict):
+    def __init__(self, name: str, llm_proxy: LLMProxy, workspace_provider: WorkspaceProvider, 
+                agent: dict, repository: dict, swebench_item: Optional[SWEBenchItem] = None):
         self.llm_proxy = llm_proxy
         self.workspace_provider = workspace_provider
         self.agent = agent
@@ -29,25 +41,27 @@ class AgentTestBenchmark:
         self.repository_name = self.repository["name"]
         self.repository_path = "/" + self.repository_name
         self.name = name
-        self.files = self.repository["files"]
+        self.swebench_item = swebench_item
+        # Only set files if not in SWE-bench mode
+        self.files = None if swebench_item else self.repository["files"]
 
     def environment_variables(self):
-        return {
+        env = {
             "OPENAI_API_BASE": self.llm_proxy.endpoint,
             "OPENAI_API_KEY": self.project['token'],
             "REPOSITORY_URL": self.repository["url"],
             "PROJECT_ROOT": self.repository_path,
             "TEST_COMMAND": self.repository["test_command"],
-            "COVERAGE_REPORT_PATH": self.repository["coverage_report_path"],
         }
+        
+        if "coverage_report_path" in self.repository:
+            env["COVERAGE_REPORT_PATH"] = self.repository["coverage_report_path"]
+            
+        if self.swebench_item:
+            env["COMMIT_SHA"] = self.swebench_item.base_commit
+            
+        return env
 
-    # Steps
-    # 1. Provide the LLM proxy
-    # 2. Provision a workspace with a copy of the git repository
-    # 3. Run the coverage tool inside the workspace to establish a baseline
-    # 4. Run the agent inside the workspace
-    # 5. Run the coverage tool again to determine improvements
-    # 6. Run a git diff between the original git repo and the version in the workspace to measure impact
     def run(self):
         logging.info("Provisioning LLM proxy...")
         self.provision_llm_proxy()
@@ -55,14 +69,70 @@ class AgentTestBenchmark:
         self.provision_workspace()
         logging.info("Establishing initial git ref...")
         self.establish_initial_git_ref()
+        
+        if self.swebench_item:
+            return self._run_swebench()
+        else:
+            return self._run_original()
+
+    def _run_swebench(self):
+        """Run the benchmark in SWE-bench mode."""
+        logging.info("Running SWE-bench validation...")
+        test_result = self.run_test_coverage()
+        if test_result.failed():
+            logging.error("Initial test validation failed")
+            self.results["validation_failed"] = True
+            self.results["validation_output"] = test_result.output
+            return self.results
+            
+        # Validate that the expected tests are failing/passing
+        test_results = self.parse_test_results(test_result.output)
+        validation_passed = all(test in test_results.failed for test in self.swebench_item.FAIL_TO_PASS) and \
+                          all(test in test_results.passed for test in self.swebench_item.PASS_TO_PASS)
+                          
+        if not validation_passed:
+            logging.error("SWE-bench validation failed - test results don't match expected state")
+            self.results["validation_failed"] = True
+            self.results["validation_output"] = test_result.output
+            return self.results
+
+        # logging.info("Running agent...")
+        # start_time = time.time()
+        # env = self.environment_variables()
+
+        # this_env = {
+        #     **env,
+        #     "PROMPT": self.swebench_item.problem_statement
+        # }
+        # result = self.run_command_in_workdir(self.agent["command"], this_env)
+        # self.results["agent_output"] = result.output
+
+        # # Check if the fix worked
+        # test_result = self.run_test_coverage()
+        # if not test_result.failed():
+        #     test_results = self.parse_test_results(test_result.output)
+        #     if all(test in test_results.passed for test in self.swebench_item.FAIL_TO_PASS):
+        #         logging.info("SWE-bench success - previously failing tests are now passing")
+        #         self.results["swebench_success"] = True
+
+        # end_time = time.time()
+        # self.results["agent_execution_time"] = end_time - start_time
+        # logging.info("Running git diff...")
+        # self.results["git_diff"] = self.run_git_diff()
+        # logging.info("Getting LLM metrics...")
+        # self.results["llm_metrics"] = self.get_llm_metrics()
+
+        return self.results
+
+    def _run_original(self):
+        """Run the benchmark in original mode."""
         logging.info("Running coverage tool...")
         self.results["initial_coverage_tool_output"] = self.get_test_coverage()
+
         logging.info("Running agent...")
         start_time = time.time()
-
         env = self.environment_variables()
         log = ""
-        self.results["agent_output"] = log
 
         for file, test_file in self.files:
             log += f"Running agent on file {file}\n"
@@ -70,10 +140,10 @@ class AgentTestBenchmark:
             result = self.run_command_in_workdir(self.agent["command"], this_env)
             log += result.output
 
-            logging.info("Running coverage tool again...")
+            logging.info("Running tests again...")
             test_result = self.run_test_coverage()
             coverage_result = self.read_test_coverage()
-
+            
             if coverage_result.succeeded():
                 self.results["final_coverage_tool_output"] = coverage_result.output
 
@@ -81,6 +151,7 @@ class AgentTestBenchmark:
                 logging.info("Test command failed. Stopping benchmark...")
                 break
 
+        self.results["agent_output"] = log
         end_time = time.time()
         self.results["agent_execution_time"] = end_time - start_time
         logging.info("Running git diff...")
@@ -89,6 +160,19 @@ class AgentTestBenchmark:
         self.results["llm_metrics"] = self.get_llm_metrics()
 
         return self.results
+
+    def parse_test_results(self, output: str) -> TestResult:
+        """Parse test output to extract passed and failed tests."""
+        passed = []
+        failed = []
+        
+        for line in output.splitlines():
+            if line.startswith("PASSED"):
+                passed.append(line.split("PASSED", 1)[1].strip())
+            elif line.startswith("FAILED"):
+                failed.append(line.split("FAILED", 1)[1].strip())
+                
+        return TestResult(passed=passed, failed=failed, output=output)
 
     def run_command_in_workdir(self, command: str, env=None):
         if env is None:
