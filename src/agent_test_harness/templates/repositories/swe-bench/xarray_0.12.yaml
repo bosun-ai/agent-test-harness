@@ -16,9 +16,13 @@ setup_script: '# Update system and install dependencies
 
   echo "Installed Miniconda" >> /tmp/repo-setup.log
 
-  eval "$(/opt/miniconda3/bin/conda shell.bash hook)"
+  # Initialize conda in .bashrc and profile.d
 
   conda init bash 2>&1 >> /tmp/repo-setup.log
+
+  echo "Initialized conda in .bashrc" >> /tmp/repo-setup.log
+
+  eval "$(/opt/miniconda3/bin/conda shell.bash hook)"
 
   echo "Conda: $(which conda)" >> /tmp/repo-setup.log
 
@@ -28,11 +32,11 @@ setup_script: '# Update system and install dependencies
 
   echo "Configured conda" >> /tmp/repo-setup.log
 
-  # Create and activate conda environment
+  # Create conda environment from environment.yml
 
-  conda create -n test_env python=3.10 -y 2>&1 >> /tmp/repo-setup.log
+  conda env create --file environment.yml 2>&1 >> /tmp/repo-setup.log
 
-  conda activate test_env
+  conda activate test_env && conda install python=3.10 -y 2>&1 >> /tmp/repo-setup.log
 
   echo "Created and activated conda environment" >> /tmp/repo-setup.log
 
@@ -49,6 +53,8 @@ setup_script: '# Update system and install dependencies
   git reset --hard $COMMIT_SHA
 
   git remote remove origin
+
+  echo "Removed origin" >> /tmp/repo-setup.log
 
   # Install package
 
@@ -74,5 +80,7 @@ setup_script: '# Update system and install dependencies
 
   echo "Created test script" >> /tmp/repo-setup.log
 
-  chmod +x /usr/local/bin/run_tests.sh'
+  chmod +x /usr/local/bin/run_tests.sh
+
+  cat /tmp/repo-setup.log'
 test_command: /usr/local/bin/run_tests.sh
