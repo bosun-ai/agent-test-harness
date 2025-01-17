@@ -45,6 +45,11 @@ def run_swe_bench():
     
     # Find first item from a requests-related repository
     requests_item = next(item for item in dataset if "requests" in item["repo"].lower())
+    
+    # Parse the JSON strings into lists
+    requests_item["FAIL_TO_PASS"] = json.loads(requests_item["FAIL_TO_PASS"])
+    requests_item["PASS_TO_PASS"] = json.loads(requests_item["PASS_TO_PASS"])
+    
     first_item = SWEBenchItem(**requests_item)
     print(f"Running benchmark for {first_item.instance_id} from repository {first_item.repo} version {first_item.version}")
     
@@ -64,16 +69,6 @@ def run_swe_bench():
         "admin_token": "test"
     })
     llm_proxy.run()
-    
-    # Configure workspace provider
-    repository_setup_script = repository.get("setup_script", "")
-    setup_script = f"""
-    {repository_setup_script}
-    
-    # SWE-bench setup:
-    git fetch origin {first_item.environment_setup_commit}
-    git checkout {first_item.environment_setup_commit}
-    """
     
     workspace_provider = WorkspaceProvider(
         name=first_item.instance_id,

@@ -6,6 +6,7 @@ from typing import Optional, Union
 from .llm_proxy import LLMProxy
 from .workspace_provider import WorkspaceProvider
 from .swe_bench_types import SWEBenchItem
+from .test_validation import parse_test_results, validate_test_results
 
 @dataclass
 class TestResult:
@@ -71,6 +72,11 @@ class AgentTestBenchmark:
         self.establish_initial_git_ref()
         
         if self.swebench_item:
+            logging.info(f"\nRunning SWE-bench item:")
+            logging.info(f"Repository: {self.swebench_item.repo}")
+            logging.info(f"Version: {self.swebench_item.version}")
+            logging.info(f"Base commit: {self.swebench_item.base_commit}")
+            logging.info(f"Instance ID: {self.swebench_item.instance_id}")
             return self._run_swebench()
         else:
             return self._run_original()
@@ -86,9 +92,16 @@ class AgentTestBenchmark:
             return self.results
             
         # Validate that the expected tests are failing/passing
-        test_results = self.parse_test_results(test_result.output)
-        validation_passed = all(test in test_results.failed for test in self.swebench_item.FAIL_TO_PASS) and \
-                          all(test in test_results.passed for test in self.swebench_item.PASS_TO_PASS)
+        test_results = parse_test_results(test_result.output)
+        logging.info("\nTest Results:")
+        logging.info(f"Passed tests: {test_results.passed}")
+        logging.info(f"Failed tests: {test_results.failed}")
+        
+        validation_passed = validate_test_results(
+            test_results,
+            fail_to_pass=self.swebench_item.FAIL_TO_PASS,
+            pass_to_pass=self.swebench_item.PASS_TO_PASS
+        )
                           
         if not validation_passed:
             logging.error("SWE-bench validation failed - test results don't match expected state")
@@ -110,7 +123,7 @@ class AgentTestBenchmark:
         # # Check if the fix worked
         # test_result = self.run_test_coverage()
         # if not test_result.failed():
-        #     test_results = self.parse_test_results(test_result.output)
+        #     test_results = parse_test_results(test_result.output)
         #     if all(test in test_results.passed for test in self.swebench_item.FAIL_TO_PASS):
         #         logging.info("SWE-bench success - previously failing tests are now passing")
         #         self.results["swebench_success"] = True
@@ -160,19 +173,6 @@ class AgentTestBenchmark:
         self.results["llm_metrics"] = self.get_llm_metrics()
 
         return self.results
-
-    def parse_test_results(self, output: str) -> TestResult:
-        """Parse test output to extract passed and failed tests."""
-        passed = []
-        failed = []
-        
-        for line in output.splitlines():
-            if line.startswith("PASSED"):
-                passed.append(line.split("PASSED", 1)[1].strip())
-            elif line.startswith("FAILED"):
-                failed.append(line.split("FAILED", 1)[1].strip())
-                
-        return TestResult(passed=passed, failed=failed, output=output)
 
     def run_command_in_workdir(self, command: str, env=None):
         if env is None:
