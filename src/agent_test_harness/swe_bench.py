@@ -3,6 +3,7 @@ import os
 import yaml
 import signal
 import subprocess
+import json
 from typing import Optional
 
 from .agent_test_benchmark import AgentTestBenchmark
@@ -69,7 +70,10 @@ def run_swe_bench():
         "admin_token": "test"
     })
     llm_proxy.run()
-    
+
+    # Configure workspace provider
+    setup_script = repository.get("setup_script", "")
+
     workspace_provider = WorkspaceProvider(
         name=first_item.instance_id,
         repository=repository,
