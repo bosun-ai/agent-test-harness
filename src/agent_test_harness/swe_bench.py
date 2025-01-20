@@ -49,9 +49,11 @@ def run_swe_bench():
     dataset = load_dataset('princeton-nlp/SWE-bench_Lite', split='test')
     logging.info(f"Total items in test split: {len(dataset)}\n")
     
-    # Find first item from a requests-related repository
-    requests_item = next(item for item in dataset if "requests" in item["repo"].lower())
-    
+    # Find nth item from a requests-related repository
+    n = 2
+    repo_name = "requests"
+    items = [item for item in dataset if repo_name in item["repo"].lower()]
+    requests_item = items[n-1]
     # Parse the JSON strings into lists
     requests_item["FAIL_TO_PASS"] = json.loads(requests_item["FAIL_TO_PASS"])
     requests_item["PASS_TO_PASS"] = json.loads(requests_item["PASS_TO_PASS"])
