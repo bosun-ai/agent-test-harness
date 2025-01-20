@@ -5,6 +5,7 @@ import signal
 import subprocess
 import json
 from typing import Optional
+import logging
 
 from .agent_test_benchmark import AgentTestBenchmark
 from .llm_proxy import LLMProxy
@@ -36,13 +37,17 @@ def get_repository_template(repo: str, version: str) -> dict:
     with open(template_path, "r") as f:
         return yaml.safe_load(f)
 
-def run_swe_bench():
-    """Download and run benchmark on first item from SWE-bench dataset."""
+def run_swe_bench(agent_name: str, repository_name: str, instance_id: Optional[str] = None):
+    """Run a SWE-bench benchmark."""
+    # Configure logging
+    logging.basicConfig(level=logging.INFO)
+    
     # Clean up any existing processes
     cleanup_processes()
     
+    # Load the dataset
     dataset = load_dataset('princeton-nlp/SWE-bench_Verified', split='test')
-    print(f"Total items in test split: {len(dataset)}\n")
+    logging.info(f"Total items in test split: {len(dataset)}\n")
     
     # Find first item from a requests-related repository
     requests_item = next(item for item in dataset if "requests" in item["repo"].lower())
@@ -52,14 +57,14 @@ def run_swe_bench():
     requests_item["PASS_TO_PASS"] = json.loads(requests_item["PASS_TO_PASS"])
     
     first_item = SWEBenchItem(**requests_item)
-    print(f"Running benchmark for {first_item.instance_id} from repository {first_item.repo} version {first_item.version} at commit {first_item.base_commit}")
+    logging.info(f"Running benchmark for {first_item.instance_id} from repository {first_item.repo} version {first_item.version} at commit {first_item.base_commit}")
     
     # Get repository template
     repository = get_repository_template(first_item.repo, first_item.version)
     
     # Create dummy agent config (we'll implement the real agent later)
     agent = {
-        "name": "swe-bench-agent",
+        "name": agent_name,
         "command": "echo 'Agent would run here'",
         "setup_script": ""  # No setup needed for dummy agent
     }
@@ -92,15 +97,15 @@ def run_swe_bench():
     )
     
     results = benchmark.run()
-    print("\nBenchmark results:")
-    print("-" * 40)
+    logging.info("\nBenchmark results:")
+    logging.info("-" * 40)
     for key, value in results.items():
-        print(f"\n{key}:")
+        logging.info(f"\n{key}:")
         if isinstance(value, str) and len(value) > 500:
-            print(f"{value[:500]}...\n[truncated, total length: {len(value)} chars]")
+            logging.info(f"{value[:500]}...\n[truncated, total length: {len(value)} chars]")
         else:
-            print(value)
-        print("-" * 40)
+            logging.info(value)
+        logging.info("-" * 40)
 
 if __name__ == "__main__":
-    run_swe_bench()
+    run_swe_bench("swe-bench-agent", "requests")
