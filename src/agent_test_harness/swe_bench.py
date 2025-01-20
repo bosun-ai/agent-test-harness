@@ -52,7 +52,7 @@ def run_swe_bench():
     requests_item["PASS_TO_PASS"] = json.loads(requests_item["PASS_TO_PASS"])
     
     first_item = SWEBenchItem(**requests_item)
-    print(f"Running benchmark for {first_item.instance_id} from repository {first_item.repo} version {first_item.version}")
+    print(f"Running benchmark for {first_item.instance_id} from repository {first_item.repo} version {first_item.version} at commit {first_item.base_commit}")
     
     # Get repository template
     repository = get_repository_template(first_item.repo, first_item.version)

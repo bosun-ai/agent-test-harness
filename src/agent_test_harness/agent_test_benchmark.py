@@ -13,6 +13,16 @@ class TestResult:
     passed: list[str]
     failed: list[str]
     output: str
+    
+    def failed(self) -> bool:
+        """Return True if the test run failed entirely (not just individual tests failing)"""
+        # If we can parse the test output, then the test run itself succeeded
+        # even if individual tests failed
+        try:
+            parse_test_results(self.output)
+            return False
+        except Exception as e:
+            return True
 
 class AgentTestBenchmark:
     run_name: str
