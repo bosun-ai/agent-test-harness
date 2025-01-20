@@ -223,7 +223,7 @@ class AgentTestBenchmark:
             env = {**self.environment_variables(), **env}
         return self.workspace_provider.run_command_with_output(self.workspace["id"], f"cd {self.repository_path} && {command}", env)
 
-    def write_file(self, path: str, content: str):
+    def write_file(self, path: str, content: bytes):
         return self.workspace_provider.write_file(self.workspace["id"], path, content)
 
     def provision_llm_proxy(self):

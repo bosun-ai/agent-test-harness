@@ -13,6 +13,8 @@ import sys
 import uuid
 import os
 import signal
+import base64
+
 from dataclasses import dataclass
 
 from .events import events
@@ -144,8 +146,9 @@ class WorkspaceProvider:
         })
         return CommandOutput(exit_code=result["exit_code"], output=result["output"])
 
-    def write_file(self, workspace_id: str, path: str, content: str):
-        return self._request("POST", f"workspaces/{workspace_id}/write_file", json={"path": path, "content": content})
+    def write_file(self, workspace_id: str, path: str, content: bytes):
+        content_base64 = base64.b64encode(content).decode("utf-8")
+        return self._request("POST", f"workspaces/{workspace_id}/write_file", json={"path": path, "content": content_base64})
     
     def read_file(self, workspace_id: str, path: str):
         return self._request("POST", f"workspaces/{workspace_id}/read_file", json={"path": path})
