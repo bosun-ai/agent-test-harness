@@ -58,7 +58,7 @@ def test_validate_test_results():
 def test_validate_swebench_item():
     """Test validation using actual SWE-bench dataset item."""
     # Load the dataset and find the requests item
-    dataset = load_dataset('princeton-nlp/SWE-bench_Verified', split='test')
+    dataset = load_dataset('princeton-nlp/SWE-bench_Lite', split='test')
     requests_item = next(item for item in dataset if "requests" in item["repo"].lower())
     
     print("\nDataset item properties:")
