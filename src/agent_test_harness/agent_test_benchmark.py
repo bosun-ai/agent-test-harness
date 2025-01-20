@@ -104,9 +104,9 @@ class AgentTestBenchmark:
             
         # Apply the test patch before running the agent
         logging.info("Applying test patch...")
-        self.workspace_provider.write_file("test.patch", self.swebench_item.test_patch)
+        self.write_file("/tmp/test.patch", self.swebench_item.test_patch)
         
-        result = self.run_command_in_workdir("git apply test.patch")
+        result = self.run_command_in_workdir("git apply /tmp/test.patch")
         if result.failed():
             logging.error(f"Failed to apply test patch: {result.output}")
             self.results["validation_failed"] = True
@@ -222,6 +222,9 @@ class AgentTestBenchmark:
             # merge the environment variables
             env = {**self.environment_variables(), **env}
         return self.workspace_provider.run_command_with_output(self.workspace["id"], f"cd {self.repository_path} && {command}", env)
+
+    def write_file(self, path: str, content: str):
+        return self.workspace_provider.write_file(self.workspace["id"], path, content)
 
     def provision_llm_proxy(self):
         self.project = self.llm_proxy.create_project(self.name)
