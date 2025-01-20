@@ -95,24 +95,20 @@ class AgentTestBenchmark:
         """Run the benchmark in SWE-bench mode."""
         logging.info("Running SWE-bench validation...")
         test_result = self.run_test_coverage()
-        if test_result.failed():
-            logging.error("Initial test validation failed")
-            self.results["validation_failed"] = True
-            self.results["validation_output"] = test_result.output
-            return self.results
-            
-        # Validate that the expected tests are failing/passing
+        
+        # Parse test results regardless of whether the run failed
         test_results = parse_test_results(test_result.output)
         logging.info("\nTest Results:")
         logging.info(f"Passed tests: {test_results.passed}")
         logging.info(f"Failed tests: {test_results.failed}")
         
+        # Validate that the expected tests are failing/passing
         validation_passed = validate_test_results(
             test_results,
             fail_to_pass=self.swebench_item.FAIL_TO_PASS,
             pass_to_pass=self.swebench_item.PASS_TO_PASS
         )
-                          
+        
         if not validation_passed:
             logging.error("SWE-bench validation failed - test results don't match expected state")
             self.results["validation_failed"] = True

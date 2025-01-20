@@ -46,7 +46,7 @@ def run_swe_bench():
     cleanup_processes()
     
     # Load the dataset
-    dataset = load_dataset('princeton-nlp/SWE-bench_Verified', split='test')
+    dataset = load_dataset('princeton-nlp/SWE-bench_Lite', split='test')
     logging.info(f"Total items in test split: {len(dataset)}\n")
     
     # Find first item from a requests-related repository
@@ -58,6 +58,8 @@ def run_swe_bench():
     
     first_item = SWEBenchItem(**requests_item)
     logging.info(f"Running benchmark for {first_item.instance_id} from repository {first_item.repo} version {first_item.version} at commit {first_item.base_commit}")
+    logging.info(f"Expected failing tests: {first_item.FAIL_TO_PASS}")
+    logging.info(f"Expected passing tests: {first_item.PASS_TO_PASS}")
     
     # Get repository template
     repository = get_repository_template(first_item.repo, first_item.version)
