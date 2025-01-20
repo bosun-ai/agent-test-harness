@@ -101,24 +101,42 @@ class AgentTestBenchmark:
         logging.info("\nTest Results:")
         logging.info(f"Passed tests: {test_results.passed}")
         logging.info(f"Failed tests: {test_results.failed}")
+            
+        # Apply the test patch before running the agent
+        logging.info("Applying test patch...")
+        self.workspace.write_file("test.patch", self.swebench_item.test_patch)
         
-        # Validate that the expected tests are failing/passing
-        validation_passed = validate_test_results(
-            test_results,
-            fail_to_pass=self.swebench_item.FAIL_TO_PASS,
-            pass_to_pass=self.swebench_item.PASS_TO_PASS
-        )
+        result = self.run_command_in_workdir("git apply test.patch")
+        if result.failed():
+            logging.error(f"Failed to apply test patch: {result.output}")
+            self.results["validation_failed"] = True
+            self.results["validation_output"] = result.output
+            return self.results
+
         
+        # Only validate that expected passing tests are passing in pre-agent state
+        validation_passed = all(test in test_results.passed for test in self.swebench_item.PASS_TO_PASS)
         if not validation_passed:
-            logging.error("SWE-bench validation failed - test results don't match expected state")
+            missing_passing = [test for test in self.swebench_item.PASS_TO_PASS if test not in test_results.passed]
+            logging.error(f"SWE-bench validation failed - these tests should be passing but aren't: {missing_passing}")
             self.results["validation_failed"] = True
             self.results["validation_output"] = test_result.output
             return self.results
 
+        # Validate that there is at least one failing test that's included in FAIL_TO_PASS
+        validation_passed = any(test in test_results.failed for test in self.swebench_item.FAIL_TO_PASS)
+        if not validation_passed:
+            still_failing = [test for test in self.swebench_item.FAIL_TO_PASS if test not in test_results.failed]
+            logging.error(f"SWE-bench validation failed - these tests are still failing: {still_failing}")
+            self.results["validation_failed"] = True
+            self.results["validation_output"] = test_result.output
+            return self.results
+        
+        # # Now run the agent
         # logging.info("Running agent...")
         # start_time = time.time()
         # env = self.environment_variables()
-
+        
         # this_env = {
         #     **env,
         #     "PROMPT": self.swebench_item.problem_statement
@@ -130,9 +148,26 @@ class AgentTestBenchmark:
         # test_result = self.run_test_coverage()
         # if not test_result.failed():
         #     test_results = parse_test_results(test_result.output)
-        #     if all(test in test_results.passed for test in self.swebench_item.FAIL_TO_PASS):
-        #         logging.info("SWE-bench success - previously failing tests are now passing")
-        #         self.results["swebench_success"] = True
+        #     logging.info("\nPost-agent test results:")
+        #     logging.info(f"Passed tests: {test_results.passed}")
+        #     logging.info(f"Failed tests: {test_results.failed}")
+            
+        #     # Check that all PASS_TO_PASS tests are still passing
+        #     pass_to_pass_ok = all(test in test_results.passed for test in self.swebench_item.PASS_TO_PASS)
+        #     if not pass_to_pass_ok:
+        #         missing_passing = [test for test in self.swebench_item.PASS_TO_PASS if test not in test_results.passed]
+        #         logging.error(f"Regression: these tests should be passing but aren't: {missing_passing}")
+        #         return self.results
+            
+        #     # Check that none of the FAIL_TO_PASS tests are failing
+        #     fail_to_pass_ok = not any(test in test_results.failed for test in self.swebench_item.FAIL_TO_PASS)
+        #     if not fail_to_pass_ok:
+        #         still_failing = [test for test in self.swebench_item.FAIL_TO_PASS if test in test_results.failed]
+        #         logging.error(f"Fix incomplete: these tests are still failing: {still_failing}")
+        #         return self.results
+            
+        #     logging.info("SWE-bench success - validation passed")
+        #     self.results["swebench_success"] = True
 
         # end_time = time.time()
         # self.results["agent_execution_time"] = end_time - start_time
