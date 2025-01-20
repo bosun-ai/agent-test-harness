@@ -37,7 +37,7 @@ def get_repository_template(repo: str, version: str) -> dict:
     with open(template_path, "r") as f:
         return yaml.safe_load(f)
 
-def run_swe_bench(agent_name: str, repository_name: str, instance_id: Optional[str] = None):
+def run_swe_bench():
     """Run a SWE-bench benchmark."""
     # Configure logging
     logging.basicConfig(level=logging.INFO)
@@ -64,7 +64,7 @@ def run_swe_bench(agent_name: str, repository_name: str, instance_id: Optional[s
     
     # Create dummy agent config (we'll implement the real agent later)
     agent = {
-        "name": agent_name,
+        "name": "swe-bench-agent",
         "command": "echo 'Agent would run here'",
         "setup_script": ""  # No setup needed for dummy agent
     }
@@ -108,4 +108,4 @@ def run_swe_bench(agent_name: str, repository_name: str, instance_id: Optional[s
         logging.info("-" * 40)
 
 if __name__ == "__main__":
-    run_swe_bench("swe-bench-agent", "requests")
+    run_swe_bench()
