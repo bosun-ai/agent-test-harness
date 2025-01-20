@@ -1,6 +1,6 @@
 import logging
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Optional, Union
 
 from .llm_proxy import LLMProxy
@@ -10,9 +10,9 @@ from .test_validation import parse_test_results, validate_test_results
 
 @dataclass
 class TestResult:
-    passed: list[str]
-    failed: list[str]
     output: str
+    passed: list[str] = field(default_factory=list)
+    failed: list[str] = field(default_factory=list)
     
     def failed(self) -> bool:
         """Return True if the test run failed entirely (not just individual tests failing)"""
