@@ -104,7 +104,7 @@ class AgentTestBenchmark:
             
         # Apply the test patch before running the agent
         logging.info("Applying test patch...")
-        self.write_file("/tmp/test.patch", self.swebench_item.test_patch)
+        self.write_file("/tmp/test.patch", self.swebench_item.test_patch.encode("utf-8"))
         
         result = self.run_command_in_workdir("git apply /tmp/test.patch")
         if result.failed():
