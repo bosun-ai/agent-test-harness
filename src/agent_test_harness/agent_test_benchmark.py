@@ -126,8 +126,7 @@ class AgentTestBenchmark:
         # Validate that there is at least one failing test that's included in FAIL_TO_PASS
         validation_passed = any(test in test_results.failed for test in self.swebench_item.FAIL_TO_PASS)
         if not validation_passed:
-            still_failing = [test for test in self.swebench_item.FAIL_TO_PASS if test not in test_results.failed]
-            logging.error(f"SWE-bench validation failed - these tests are still failing: {still_failing}")
+            logging.error(f"SWE-bench validation failed - expected:[[{test_results.failed}]] to include one of: [[{self.swebench_item.FAIL_TO_PASS}]]")
             self.results["validation_failed"] = True
             self.results["validation_output"] = test_result.output
             return self.results
