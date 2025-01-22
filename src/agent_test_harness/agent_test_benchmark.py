@@ -123,6 +123,8 @@ class AgentTestBenchmark:
             self.results["validation_output"] = test_result.output
             return self.results
 
+        test_result = self.run_test_coverage()
+
         # Validate that there is at least one failing test that's included in FAIL_TO_PASS
         validation_passed = any(test in test_results.failed for test in self.swebench_item.FAIL_TO_PASS)
         if not validation_passed:
@@ -131,49 +133,58 @@ class AgentTestBenchmark:
             self.results["validation_output"] = test_result.output
             return self.results
         
-        # # Now run the agent
-        # logging.info("Running agent...")
-        # start_time = time.time()
-        # env = self.environment_variables()
+        # Now run the agent
+        logging.info("Running agent...")
+        start_time = time.time()
+        env = self.environment_variables()
         
-        # this_env = {
-        #     **env,
-        #     "PROMPT": self.swebench_item.problem_statement
-        # }
-        # result = self.run_command_in_workdir(self.agent["command"], this_env)
-        # self.results["agent_output"] = result.output
+        this_env = {
+            **env,
+            "PROMPT": (
+                "A user has reported the following issue:\n\n"
+                f"<issue>\n{self.swebench_item.problem_statement}\n</issue>\n\n"
+                "Could you solve the issue? I have added a failing test case for it. Using the following patch:\n\n"
+                f"<patch>\n{self.swebench_item.patch}\n</patch>\n\n"
+                "Please make sure that your solution makes the test(s) in this patch pass, "
+                "and does not introduce any new failing tests. "
+                "You can ignore tests that were already failing that are not related to the tests in this patch."
+                "Do not modify the tests in this patch nor any other tests in the repository, only fix the issue."
+            )
+        }
+        result = self.run_command_in_workdir(self.agent["command"], this_env)
+        self.results["agent_output"] = result.output
 
-        # # Check if the fix worked
-        # test_result = self.run_test_coverage()
-        # if not test_result.failed():
-        #     test_results = parse_test_results(test_result.output)
-        #     logging.info("\nPost-agent test results:")
-        #     logging.info(f"Passed tests: {test_results.passed}")
-        #     logging.info(f"Failed tests: {test_results.failed}")
+        # Check if the fix worked
+        test_result = self.run_test_coverage()
+        if not test_result.failed():
+            test_results = parse_test_results(test_result.output)
+            logging.info("\nPost-agent test results:")
+            logging.info(f"Passed tests: {test_results.passed}")
+            logging.info(f"Failed tests: {test_results.failed}")
             
-        #     # Check that all PASS_TO_PASS tests are still passing
-        #     pass_to_pass_ok = all(test in test_results.passed for test in self.swebench_item.PASS_TO_PASS)
-        #     if not pass_to_pass_ok:
-        #         missing_passing = [test for test in self.swebench_item.PASS_TO_PASS if test not in test_results.passed]
-        #         logging.error(f"Regression: these tests should be passing but aren't: {missing_passing}")
-        #         return self.results
+            # Check that all PASS_TO_PASS tests are still passing
+            pass_to_pass_ok = all(test in test_results.passed for test in self.swebench_item.PASS_TO_PASS)
+            if not pass_to_pass_ok:
+                missing_passing = [test for test in self.swebench_item.PASS_TO_PASS if test not in test_results.passed]
+                logging.error(f"Regression: these tests should be passing but aren't: {missing_passing}")
+                return self.results
             
-        #     # Check that none of the FAIL_TO_PASS tests are failing
-        #     fail_to_pass_ok = not any(test in test_results.failed for test in self.swebench_item.FAIL_TO_PASS)
-        #     if not fail_to_pass_ok:
-        #         still_failing = [test for test in self.swebench_item.FAIL_TO_PASS if test in test_results.failed]
-        #         logging.error(f"Fix incomplete: these tests are still failing: {still_failing}")
-        #         return self.results
+            # Check that none of the FAIL_TO_PASS tests are failing
+            fail_to_pass_ok = not any(test in test_results.failed for test in self.swebench_item.FAIL_TO_PASS)
+            if not fail_to_pass_ok:
+                still_failing = [test for test in self.swebench_item.FAIL_TO_PASS if test in test_results.failed]
+                logging.error(f"Fix incomplete: these tests are still failing: {still_failing}")
+                return self.results
             
-        #     logging.info("SWE-bench success - validation passed")
-        #     self.results["swebench_success"] = True
+            logging.info("SWE-bench success - validation passed")
+            self.results["swebench_success"] = True
 
-        # end_time = time.time()
-        # self.results["agent_execution_time"] = end_time - start_time
-        # logging.info("Running git diff...")
-        # self.results["git_diff"] = self.run_git_diff()
-        # logging.info("Getting LLM metrics...")
-        # self.results["llm_metrics"] = self.get_llm_metrics()
+        end_time = time.time()
+        self.results["agent_execution_time"] = end_time - start_time
+        logging.info("Running git diff...")
+        self.results["git_diff"] = self.run_git_diff()
+        logging.info("Getting LLM metrics...")
+        self.results["llm_metrics"] = self.get_llm_metrics()
 
         return self.results
 
@@ -189,7 +200,10 @@ class AgentTestBenchmark:
 
         for file, test_file in self.files:
             log += f"Running agent on file {file}\n"
-            this_env = {**env, "FILE_PATH": file, "TEST_FILE_PATH": test_file}
+            this_env = {
+                **env,
+                "PROMPT": f"Write unit tests for {file} until it has 100% coverage, make sure to add the files to {test_file}. Do not modify the original code, only add tests. Do not modify other files than {test_file} or test helper files. If you believe that a piece of code can not be tested without modifying it (for example to inject a dependency), skip it. If you added a test that you can't get to pass, remove it before stopping. This is not an interactive chat, so don't ask for extra information or any action from a user. Either use the tools or clean up failing tests and stop."
+            }
             result = self.run_command_in_workdir(self.agent["command"], this_env)
             log += result.output
 

@@ -10,7 +10,7 @@ setup_script: |
   chmod +x /usr/local/bin/fluyt;
   echo "Set up fluyt agent" >> /tmp/setup.log;
   cat <<- "MANIFEST_EOF" > /tmp/manifest.yaml.tmpl
-  goal: "Write unit tests for $FILE_PATH until it has 100% coverage"
+  goal: "$PROMPT"
   repository:
     url: $REPOSITORY_URL
     lang: typescript

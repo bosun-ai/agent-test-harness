@@ -66,20 +66,19 @@ def run_swe_bench():
     # Get repository template
     repository = get_repository_template(first_item.repo, first_item.version)
     
-    # Create dummy agent config (we'll implement the real agent later)
-    agent = {
-        "name": "swe-bench-agent",
-        "command": "echo 'Agent would run here'",
-        "setup_script": ""  # No setup needed for dummy agent
+    # Initialize LLM proxy with default config
+    config = {
+        "llm_proxy": {
+            "port": 8000,
+            "host": "127.0.0.1",
+            "api_key": os.environ.get("OPENAI_API_KEY"),
+            "base_url": os.environ.get("OPENAI_API_BASE"),
+            "model": "gpt-4"
+        }
     }
-    
-    # Configure LLM proxy
-    llm_proxy = LLMProxy({
-        "endpoint": "http://localhost:8000",
-        "admin_token": "test"
-    })
+    llm_proxy = LLMProxy(config)
     llm_proxy.run()
-
+    
     # Configure workspace provider
     setup_script = repository.get("setup_script", "")
 
@@ -89,13 +88,18 @@ def run_swe_bench():
         setup_script=setup_script
     )
     workspace_provider.run()
+
+    # Get agent template
+    agent_template_path = os.path.join(os.path.dirname(__file__), "templates", "agents", "kwaak.yaml")
+    with open(agent_template_path, "r") as f:
+        agent_template = yaml.safe_load(f)
     
-    # Create and run benchmark
+    # Run the benchmark
     benchmark = AgentTestBenchmark(
         name=first_item.instance_id,
         llm_proxy=llm_proxy,
         workspace_provider=workspace_provider,
-        agent=agent,
+        agent=agent_template,
         repository=repository,
         swebench_item=first_item
     )
