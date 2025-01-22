@@ -3,6 +3,10 @@ version: "v0.4.0"
 setup_script: |
   apt update;
   apt install -y curl fd-find ripgrep gettext-base xz-utils libssl-dev;
+  # temporary workaround for outdated libssl dependency:
+  wget http://nz2.archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2.23_amd64.deb
+  dpkg -i libssl1.1_1.1.1f-1ubuntu2.23_amd64.deb;
+  # end of temporary workaround
   echo "Installed apt packages" >> /tmp/setup.log;
   ln -s $(which fdfind) /usr/local/bin/fd
   echo "Installed fd" >> /tmp/setup.log;
