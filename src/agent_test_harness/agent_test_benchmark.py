@@ -1,5 +1,7 @@
 import logging
+import os
 import time
+
 from dataclasses import dataclass, field
 from typing import Optional, Union
 
@@ -47,6 +49,9 @@ class AgentTestBenchmark:
             "REPOSITORY_URL": self.repository["url"],
             "PROJECT_ROOT": self.repository_path,
             "TEST_COMMAND": self.repository["test_command"],
+            "OTEL_EXPORTER_OTLP_ENDPOINT": os.environ["OTEL_EXPORTER_OTLP_ENDPOINT"],
+            "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
+            "OTEL_EXPORTER_OTLP_HEADERS": os.environ["OTEL_EXPORTER_OTLP_HEADERS"],
         }
         
         if "coverage_report_path" in self.repository:
