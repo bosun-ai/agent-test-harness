@@ -8,22 +8,6 @@ from .workspace_provider import WorkspaceProvider
 from .swe_bench_types import SWEBenchItem
 from .test_validation import parse_test_results, validate_test_results
 
-@dataclass
-class TestResult:
-    output: str
-    passed: list[str] = field(default_factory=list)
-    failed: list[str] = field(default_factory=list)
-    
-    def failed(self) -> bool:
-        """Return True if the test run failed entirely (not just individual tests failing)"""
-        # If we can parse the test output, then the test run itself succeeded
-        # even if individual tests failed
-        try:
-            parse_test_results(self.output)
-            return False
-        except Exception as e:
-            return True
-
 class AgentTestBenchmark:
     run_name: str
     llm_proxy: LLMProxy
@@ -123,7 +107,11 @@ class AgentTestBenchmark:
             self.results["validation_output"] = test_result.output
             return self.results
 
-        test_results = self.run_test_coverage()
+        test_result = self.run_test_coverage()
+        test_results = parse_test_results(test_result.output)
+        logging.info("\nPost-validation test results:")
+        logging.info(f"Passed tests: {test_results.passed}")
+        logging.info(f"Failed tests: {test_results.failed}")
 
         # Validate that there is at least one failing test that's included in FAIL_TO_PASS
         validation_passed = any(test in test_results.failed for test in self.swebench_item.FAIL_TO_PASS)
