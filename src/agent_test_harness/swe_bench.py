@@ -79,9 +79,14 @@ def run_swe_bench():
     llm_proxy = LLMProxy(config)
     llm_proxy.run()
     
+    # Get agent template
+    agent_template_path = os.path.join(os.path.dirname(__file__), "templates", "agents", "kwaak.yaml")
+    with open(agent_template_path, "r") as f:
+        agent_template = yaml.safe_load(f)
+
     # Configure workspace provider
     repo_setup_script = repository.get("setup_script", "")
-    agent_setup_script = repository.get("agent_setup_script", "")
+    agent_setup_script = agent_template.get("setup_script", "")
     setup_script = f"{repo_setup_script}\n\n# Agent setup script:\n\n{agent_setup_script}"
 
     workspace_provider = WorkspaceProvider(
@@ -90,11 +95,6 @@ def run_swe_bench():
         setup_script=setup_script
     )
     workspace_provider.run()
-
-    # Get agent template
-    agent_template_path = os.path.join(os.path.dirname(__file__), "templates", "agents", "kwaak.yaml")
-    with open(agent_template_path, "r") as f:
-        agent_template = yaml.safe_load(f)
     
     # Run the benchmark
     benchmark = AgentTestBenchmark(
