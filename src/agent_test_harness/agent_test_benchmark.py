@@ -123,7 +123,7 @@ class AgentTestBenchmark:
             self.results["validation_output"] = test_result.output
             return self.results
 
-        test_result = self.run_test_coverage()
+        test_results = self.run_test_coverage()
 
         # Validate that there is at least one failing test that's included in FAIL_TO_PASS
         validation_passed = any(test in test_results.failed for test in self.swebench_item.FAIL_TO_PASS)
