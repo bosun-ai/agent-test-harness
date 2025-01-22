@@ -80,7 +80,9 @@ def run_swe_bench():
     llm_proxy.run()
     
     # Configure workspace provider
-    setup_script = repository.get("setup_script", "")
+    repo_setup_script = repository.get("setup_script", "")
+    agent_setup_script = repository.get("agent_setup_script", "")
+    setup_script = f"{repo_setup_script}\n\n# Agent setup script:\n\n{agent_setup_script}"
 
     workspace_provider = WorkspaceProvider(
         name=first_item.instance_id,
