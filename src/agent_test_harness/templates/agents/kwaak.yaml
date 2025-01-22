@@ -17,8 +17,9 @@ setup_script: |
   cat <<- "CONFIG_EOF" > /tmp/kwaak.toml
   language = "$LANGUAGE"
   tool_executor = "local"
+  openai_api_key = "text:$OPENAI_API_KEY"
 
-  [github]
+  [git]
   owner = "bosun-ai"
   repository = "todolist"
   main_branch = "master"
@@ -28,19 +29,16 @@ setup_script: |
   coverage = "$TEST_COMMAND"
 
   [llm.indexing]
-  api_key = "text:$OPENAI_API_KEY"
   provider = "OpenAI"
   prompt_model = "gpt-4o-mini"
   base_url = "$OPENAI_API_BASE"
 
   [llm.query]
-  api_key = "text:$OPENAI_API_KEY"
   provider = "OpenAI"
   prompt_model = "gpt-4o"
   base_url = "$OPENAI_API_BASE"
 
   [llm.embedding]
-  api_key = "text:$OPENAI_API_KEY"
   provider = "OpenAI"
   embedding_model = "text-embedding-3-large"
   base_url = "$OPENAI_API_BASE"
