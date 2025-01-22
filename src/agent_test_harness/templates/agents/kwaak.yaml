@@ -46,6 +46,7 @@ setup_script: |
   CONFIG_EOF
 command: |
   echo "Running kwaak agent" >> /tmp/setup.log;
+  echo "OTEL endpoint: $OTEL_EXPORTER_OTLP_ENDPOINT" >> /tmp/setup.log;
   source $HOME/.cargo/env
   
   # Determining project language by examining the files in the $PROJECT_ROOT. If there's a package.json, it's a Node.js project.

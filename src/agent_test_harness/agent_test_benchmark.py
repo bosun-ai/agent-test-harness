@@ -53,6 +53,11 @@ class AgentTestBenchmark:
             "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
             "OTEL_EXPORTER_OTLP_HEADERS": os.environ["OTEL_EXPORTER_OTLP_HEADERS"],
         }
+
+        if env["OTEL_EXPORTER_OTLP_HEADERS"]:
+            logging.info(f"Using OTEL_EXPORTER_OTLP_HEADERS: {env['OTEL_EXPORTER_OTLP_HEADERS']}")
+        else:
+            logging.info(f"OTEL_EXPORTER_OTLP_HEADERS not set: {env}, {os.environ}")
         
         if "coverage_report_path" in self.repository:
             env["COVERAGE_REPORT_PATH"] = self.repository["coverage_report_path"]
