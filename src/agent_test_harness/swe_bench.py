@@ -48,6 +48,8 @@ def run_swe_bench():
     # Load the dataset
     dataset = load_dataset('princeton-nlp/SWE-bench_Lite', split='test')
     logging.info(f"Total items in test split: {len(dataset)}\n")
+    predictions = []
+    benchmark_results = []
     
     # Find nth item from a requests-related repository
     n = 2
@@ -106,16 +108,28 @@ def run_swe_bench():
         swebench_item=first_item
     )
     
-    results = benchmark.run()
-    logging.info("\nBenchmark results:")
-    logging.info("-" * 40)
-    for key, value in results.items():
-        logging.info(f"\n{key}:")
-        if isinstance(value, str) and len(value) > 500:
-            logging.info(f"{value[:500]}...\n[truncated, total length: {len(value)} chars]")
-        else:
-            logging.info(value)
-        logging.info("-" * 40)
+    benchmark_result = benchmark.run()
+
+    # workspace_provider.stop()
+
+    benchmark_results.append(benchmark_result)
+
+    prediction = {
+        "instance_id": first_item.instance_id,
+        "model_name_or_path": f"{agent_template['name']}-{agent_template['version']}",
+        "model_patch": benchmark_result['git_diff'],
+    }
+
+    predictions.append(prediction)
+
+    with open("predictions.jsonl", "w") as f:
+        for prediction in predictions:
+            f.write(json.dumps(prediction) + "\n")
+
+    with open("swe_bench_results.json", "w") as f:
+        json.dump(benchmark_results, f)
+
+    return benchmark_results
 
 if __name__ == "__main__":
     run_swe_bench()

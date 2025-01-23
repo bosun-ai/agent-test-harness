@@ -50,15 +50,12 @@ class AgentTestBenchmark:
             "PROJECT_ROOT": self.repository_path,
             "TEST_COMMAND": self.repository["test_command"],
             "OTEL_SERVICE_NAME": self.name,
+            "OTEL_ENABLED": os.environ["OTEL_ENABLED"],
             "OTEL_EXPORTER_OTLP_ENDPOINT": os.environ["OTEL_EXPORTER_OTLP_ENDPOINT"],
             "OTEL_EXPORTER_OTLP_PROTOCOL": os.environ["OTEL_EXPORTER_OTLP_PROTOCOL"],
             "OTEL_EXPORTER_OTLP_HEADERS": os.environ["OTEL_EXPORTER_OTLP_HEADERS"],
+            "OTEL_EXPORTER_OTLP_INSECURE": os.environ["OTEL_EXPORTER_OTLP_INSECURE"],
         }
-
-        if env["OTEL_EXPORTER_OTLP_HEADERS"]:
-            logging.info(f"Using OTEL_EXPORTER_OTLP_HEADERS: {env['OTEL_EXPORTER_OTLP_HEADERS']}")
-        else:
-            logging.info(f"OTEL_EXPORTER_OTLP_HEADERS not set: {env}, {os.environ}")
         
         if "coverage_report_path" in self.repository:
             env["COVERAGE_REPORT_PATH"] = self.repository["coverage_report_path"]
@@ -73,8 +70,6 @@ class AgentTestBenchmark:
         self.provision_llm_proxy()
         logging.info("Provisioning workspace...")
         self.provision_workspace()
-        logging.info("Establishing initial git ref...")
-        self.establish_initial_git_ref()
         
         if self.swebench_item:
             logging.info(f"\nRunning SWE-bench item:")
@@ -108,6 +103,8 @@ class AgentTestBenchmark:
             self.results["validation_output"] = result.output
             return self.results
 
+        logging.info("Establishing initial git ref...")
+        self.establish_initial_git_ref()
         
         # Only validate that expected passing tests are passing in pre-agent state
         validation_passed = all(test in test_results.passed for test in self.swebench_item.PASS_TO_PASS)
@@ -189,6 +186,10 @@ class AgentTestBenchmark:
 
     def _run_original(self):
         """Run the benchmark in original mode."""
+
+        logging.info("Establishing initial git ref...")
+        self.establish_initial_git_ref()
+
         logging.info("Running coverage tool...")
         self.results["initial_coverage_tool_output"] = self.get_test_coverage()
 
