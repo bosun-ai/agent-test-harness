@@ -20,6 +20,7 @@ setup_script: |
   language = "$LANGUAGE"
   tool_executor = "local"
   openai_api_key = "text:$OPENAI_API_KEY"
+  otel_enabled = true
 
   [git]
   owner = "bosun-ai"
