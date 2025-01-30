@@ -1,5 +1,5 @@
 name: kwaak
-version: "v0.4.0"
+version: "v0.8.0"
 setup_script: |
   apt update;
   apt install -y curl fd-find ripgrep gettext-base xz-utils libssl-dev;
@@ -12,7 +12,7 @@ setup_script: |
   echo "Installed apt packages" >> /tmp/setup.log;
   ln -s $(which fdfind) /usr/local/bin/fd
   echo "Installed fd" >> /tmp/setup.log;
-  curl --proto '=https' --tlsv1.2 -LsSf https://github.com/bosun-ai/kwaak/releases/download/v0.4.0/kwaak-installer.sh | sh
+  curl --proto '=https' --tlsv1.2 -LsSf https://github.com/bosun-ai/kwaak/releases/download/v0.8.0/kwaak-installer.sh | sh
   echo "Set up kwaak agent: $?" >> /tmp/setup.log;
   source $HOME/.cargo/env
 
