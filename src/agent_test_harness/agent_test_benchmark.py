@@ -82,16 +82,6 @@ class AgentTestBenchmark:
             return self._run_original()
 
     def _run_swebench(self):
-        """Run the benchmark in SWE-bench mode."""
-        logging.info("Running SWE-bench validation...")
-        test_result = self.run_test_coverage()
-        
-        # Parse test results regardless of whether the run failed
-        test_results = parse_test_results(test_result.output)
-        logging.info("\nTest Results:")
-        logging.info(f"Passed tests: {test_results.passed}")
-        logging.info(f"Failed tests: {test_results.failed}")
-            
         # Apply the test patch before running the agent
         logging.info("Applying test patch...")
         self.write_file("/tmp/test.patch", self.swebench_item.test_patch.encode("utf-8"))
@@ -105,7 +95,17 @@ class AgentTestBenchmark:
 
         logging.info("Establishing initial git ref...")
         self.establish_initial_git_ref()
+
+        """Run the benchmark in SWE-bench mode."""
+        logging.info("Running SWE-bench validation...")
+        test_result = self.run_test_coverage()
         
+        # Parse test results regardless of whether the run failed
+        test_results = parse_test_results(test_result.output)
+        logging.info("\nTest Results:")
+        logging.info(f"Passed tests: {test_results.passed}")
+        logging.info(f"Failed tests: {test_results.failed}")
+            
         # Only validate that expected passing tests are passing in pre-agent state
         validation_passed = all(test in test_results.passed for test in self.swebench_item.PASS_TO_PASS)
         if not validation_passed:
@@ -114,12 +114,6 @@ class AgentTestBenchmark:
             self.results["validation_failed"] = True
             self.results["validation_output"] = test_result.output
             return self.results
-
-        test_result = self.run_test_coverage()
-        test_results = parse_test_results(test_result.output)
-        logging.info("\nPost-validation test results:")
-        logging.info(f"Passed tests: {test_results.passed}")
-        logging.info(f"Failed tests: {test_results.failed}")
 
         # Validate that there is at least one failing test that's included in FAIL_TO_PASS
         validation_passed = any(test in test_results.failed for test in self.swebench_item.FAIL_TO_PASS)

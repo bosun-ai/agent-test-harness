@@ -46,81 +46,83 @@ def run_swe_bench():
     cleanup_processes()
     
     # Load the dataset
-    dataset = load_dataset('princeton-nlp/SWE-bench_Lite', split='test')
+    dataset = load_dataset('princeton-nlp/SWE-bench_Verified', split='test')
     logging.info(f"Total items in test split: {len(dataset)}\n")
     predictions = []
     benchmark_results = []
     
     # Find nth item from a requests-related repository
-    n = 2
     repo_name = "requests"
     items = [item for item in dataset if repo_name in item["repo"].lower()]
-    requests_item = items[n-1]
-    # Parse the JSON strings into lists
-    requests_item["FAIL_TO_PASS"] = json.loads(requests_item["FAIL_TO_PASS"])
-    requests_item["PASS_TO_PASS"] = json.loads(requests_item["PASS_TO_PASS"])
-    
-    first_item = SWEBenchItem(**requests_item)
-    logging.info(f"Running benchmark for {first_item.instance_id} from repository {first_item.repo} version {first_item.version} at commit {first_item.base_commit}")
-    logging.info(f"Expected failing tests: {first_item.FAIL_TO_PASS}")
-    logging.info(f"Expected passing tests: {first_item.PASS_TO_PASS}")
-    
-    # Get repository template
-    repository = get_repository_template(first_item.repo, first_item.version)
-    
-    # Initialize LLM proxy with default config
-    config = {
-        "llm_proxy": {
-            "port": 8000,
-            "host": "127.0.0.1",
-            "api_key": os.environ.get("OPENAI_API_KEY"),
-            "base_url": os.environ.get("OPENAI_API_BASE"),
-            "model": "gpt-4"
+
+    # TODO: Implement sorting based on instance_id
+    items.sort(key=lambda x: x["instance_id"])
+
+    for item in items[:10]:
+        # Parse the JSON strings into lists
+        item["FAIL_TO_PASS"] = json.loads(item["FAIL_TO_PASS"])
+        item["PASS_TO_PASS"] = json.loads(item["PASS_TO_PASS"])
+        item = SWEBenchItem(**item)
+        logging.info(f"Running benchmark for {item.instance_id} from repository {item.repo} version {item.version} at commit {item.base_commit}")
+        logging.info(f"Expected failing tests: {item.FAIL_TO_PASS}")
+        logging.info(f"Expected passing tests: {item.PASS_TO_PASS}")
+        
+        # Get repository template
+        repository = get_repository_template(item.repo, item.version)
+        
+        # Initialize LLM proxy with default config
+        config = {
+            "llm_proxy": {
+                "port": 8000,
+                "host": "127.0.0.1",
+                "api_key": os.environ.get("OPENAI_API_KEY"),
+                "base_url": os.environ.get("OPENAI_API_BASE"),
+                "model": "gpt-4"
+            }
         }
-    }
-    llm_proxy = LLMProxy(config)
-    llm_proxy.run()
-    
-    # Get agent template
-    agent_template_path = os.path.join(os.path.dirname(__file__), "templates", "agents", "kwaak.yaml")
-    with open(agent_template_path, "r") as f:
-        agent_template = yaml.safe_load(f)
+        llm_proxy = LLMProxy(config)
+        llm_proxy.run()
+        
+        # Get agent template
+        agent_template_path = os.path.join(os.path.dirname(__file__), "templates", "agents", "kwaak.yaml")
+        with open(agent_template_path, "r") as f:
+            agent_template = yaml.safe_load(f)
 
-    # Configure workspace provider
-    repo_setup_script = repository.get("setup_script", "")
-    agent_setup_script = agent_template.get("setup_script", "")
-    setup_script = f"{repo_setup_script}\n\n# Agent setup script:\n\n{agent_setup_script}"
+        # Configure workspace provider
+        repo_setup_script = repository.get("setup_script", "")
+        agent_setup_script = agent_template.get("setup_script", "")
+        setup_script = f"{repo_setup_script}\n\n# Agent setup script:\n\n{agent_setup_script}"
 
-    workspace_provider = WorkspaceProvider(
-        name=first_item.instance_id,
-        repository=repository,
-        setup_script=setup_script
-    )
-    workspace_provider.run()
-    
-    # Run the benchmark
-    benchmark = AgentTestBenchmark(
-        name=first_item.instance_id,
-        llm_proxy=llm_proxy,
-        workspace_provider=workspace_provider,
-        agent=agent_template,
-        repository=repository,
-        swebench_item=first_item
-    )
-    
-    benchmark_result = benchmark.run()
+        workspace_provider = WorkspaceProvider(
+            name=item.instance_id,
+            repository=repository,
+            setup_script=setup_script
+        )
+        workspace_provider.run()
+        
+        # Run the benchmark
+        benchmark = AgentTestBenchmark(
+            name=item.instance_id,
+            llm_proxy=llm_proxy,
+            workspace_provider=workspace_provider,
+            agent=agent_template,
+            repository=repository,
+            swebench_item=item
+        )
+        
+        benchmark_result = benchmark.run()
 
-    # workspace_provider.stop()
+        # workspace_provider.stop()
 
-    benchmark_results.append(benchmark_result)
+        benchmark_results.append(benchmark_result)
 
-    prediction = {
-        "instance_id": first_item.instance_id,
-        "model_name_or_path": f"{agent_template['name']}-{agent_template['version']}",
-        "model_patch": benchmark_result['git_diff'],
-    }
+        prediction = {
+            "instance_id": item.instance_id,
+            "model_name_or_path": f"{agent_template['name']}-{agent_template['version']}",
+            "model_patch": benchmark_result['git_diff'],
+        }
 
-    predictions.append(prediction)
+        predictions.append(prediction)
 
     with open("predictions.jsonl", "w") as f:
         for prediction in predictions:
