@@ -58,6 +58,19 @@ def run_swe_bench():
     # TODO: Implement sorting based on instance_id
     items.sort(key=lambda x: x["instance_id"])
 
+    # Initialize LLM proxy with default config
+    config = {
+        "llm_proxy": {
+            "port": 8000,
+            "host": "127.0.0.1",
+            "api_key": os.environ.get("OPENAI_API_KEY"),
+            "base_url": os.environ.get("OPENAI_API_BASE"),
+            "model": "gpt-4"
+        }
+    }
+    llm_proxy = LLMProxy(config)
+    llm_proxy.run()
+
     for item in items[:10]:
         # Parse the JSON strings into lists
         item["FAIL_TO_PASS"] = json.loads(item["FAIL_TO_PASS"])
@@ -69,19 +82,6 @@ def run_swe_bench():
         
         # Get repository template
         repository = get_repository_template(item.repo, item.version)
-        
-        # Initialize LLM proxy with default config
-        config = {
-            "llm_proxy": {
-                "port": 8000,
-                "host": "127.0.0.1",
-                "api_key": os.environ.get("OPENAI_API_KEY"),
-                "base_url": os.environ.get("OPENAI_API_BASE"),
-                "model": "gpt-4"
-            }
-        }
-        llm_proxy = LLMProxy(config)
-        llm_proxy.run()
         
         # Get agent template
         agent_template_path = os.path.join(os.path.dirname(__file__), "templates", "agents", "kwaak.yaml")
@@ -112,7 +112,7 @@ def run_swe_bench():
         
         benchmark_result = benchmark.run()
 
-        # workspace_provider.stop()
+        workspace_provider.stop()
 
         benchmark_results.append(benchmark_result)
 
