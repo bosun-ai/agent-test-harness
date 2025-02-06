@@ -88,6 +88,7 @@ class AgentTestBenchmark:
         result = self.run_command_in_workdir("git apply /tmp/test.patch")
         if result.failed():
             logging.error(f"Failed to apply test patch: {result.output}")
+            self.results["error"] = result.output
             self.results["validation_failed"] = True
             self.results["validation_output"] = result.output
             return self.results
@@ -110,6 +111,7 @@ class AgentTestBenchmark:
         if not validation_passed:
             missing_passing = [test for test in self.swebench_item.PASS_TO_PASS if test not in test_results.passed]
             logging.error(f"SWE-bench validation failed - these tests should be passing but aren't: {missing_passing}")
+            self.results["error"] = f"SWE-bench pre-run validation failed - these tests should be passing but aren't: {missing_passing}"
             self.results["validation_failed"] = True
             self.results["validation_output"] = test_result.output
             return self.results
@@ -120,6 +122,7 @@ class AgentTestBenchmark:
         validation_passed = any(test in test_results.failed for test in self.swebench_item.FAIL_TO_PASS)
         if not validation_passed:
             # logging.error(f"SWE-bench validation failed - expected:[[{test_results.failed}]] to include one of: [[{self.swebench_item.FAIL_TO_PASS}]]")
+            # self.results["error"] = f"SWE-bench pre-run validation failed - expected:[[{test_results.failed}]] to include one of: [[{self.swebench_item.FAIL_TO_PASS}]]"
             # self.results["validation_failed"] = True
             # self.results["validation_output"] = test_result.output
             # return self.results
@@ -168,6 +171,7 @@ class AgentTestBenchmark:
             if not pass_to_pass_ok:
                 missing_passing = [test for test in self.swebench_item.PASS_TO_PASS if test not in test_results.passed]
                 logging.error(f"Regression: these tests should be passing but aren't: {missing_passing}")
+                self.results["error"] = f"Regression: these tests should be passing but aren't: {missing_passing}"
                 return self.results
             
             # Check that none of the FAIL_TO_PASS tests are failing
@@ -175,6 +179,7 @@ class AgentTestBenchmark:
             if not fail_to_pass_ok:
                 still_failing = [test for test in self.swebench_item.FAIL_TO_PASS if test in test_results.failed]
                 logging.error(f"Fix incomplete: these tests are still failing: {still_failing}")
+                self.results["error"] = f"Fix incomplete: these tests are still failing: {still_failing}"
                 return self.results
             
             logging.info("SWE-bench success - validation passed")
