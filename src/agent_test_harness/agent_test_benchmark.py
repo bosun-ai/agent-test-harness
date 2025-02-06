@@ -49,11 +49,11 @@ class AgentTestBenchmark:
             "PROJECT_ROOT": self.repository_path,
             "TEST_COMMAND": self.repository["test_command"],
             "OTEL_SERVICE_NAME": self.name,
-            "OTEL_ENABLED": os.environ["OTEL_ENABLED"],
-            "OTEL_EXPORTER_OTLP_ENDPOINT": os.environ["OTEL_EXPORTER_OTLP_ENDPOINT"],
-            "OTEL_EXPORTER_OTLP_PROTOCOL": os.environ["OTEL_EXPORTER_OTLP_PROTOCOL"],
-            "OTEL_EXPORTER_OTLP_HEADERS": os.environ["OTEL_EXPORTER_OTLP_HEADERS"],
-            "OTEL_EXPORTER_OTLP_INSECURE": os.environ["OTEL_EXPORTER_OTLP_INSECURE"],
+            "OTEL_ENABLED": os.getenv("OTEL_ENABLED", "false"),
+            "OTEL_EXPORTER_OTLP_ENDPOINT": os.getenv("OTEL_EXPORTER_OTLP_ENDPOINT",""),
+            "OTEL_EXPORTER_OTLP_PROTOCOL": os.getenv("OTEL_EXPORTER_OTLP_PROTOCOL",""),
+            "OTEL_EXPORTER_OTLP_HEADERS": os.getenv("OTEL_EXPORTER_OTLP_HEADERS", ""),
+            "OTEL_EXPORTER_OTLP_INSECURE": os.getenv("OTEL_EXPORTER_OTLP_INSECURE",""),
         }
         
         if "coverage_report_path" in self.repository:
