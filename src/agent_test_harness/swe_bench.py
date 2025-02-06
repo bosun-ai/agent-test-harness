@@ -116,6 +116,10 @@ def run_swe_bench():
 
         benchmark_results.append(benchmark_result)
 
+        if "error" in benchmark_result:
+            logging.error(f"Error running benchmark for {item.instance_id}: {benchmark_result['error']}")
+            continue
+
         prediction = {
             "instance_id": item.instance_id,
             "model_name_or_path": f"{agent_template['name']}-{agent_template['version']}",
