@@ -22,6 +22,8 @@ setup_script: |
   openai_api_key = "text:$OPENAI_API_KEY"
   otel_enabled = true
 
+  cache_dir = "/var/cache/workspace/kwaak$PROJECT_ROOT"
+
   [git]
   owner = "bosun-ai"
   repository = "todolist"

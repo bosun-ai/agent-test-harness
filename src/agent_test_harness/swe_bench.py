@@ -1,10 +1,8 @@
 from datasets import load_dataset
 import os
 import yaml
-import signal
 import subprocess
 import json
-from typing import Optional
 import logging
 
 from .agent_test_benchmark import AgentTestBenchmark
