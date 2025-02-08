@@ -76,7 +76,7 @@ def run_swe_bench():
         dataset_items.append(item)
 
 
-    benchmark = Benchmark(benchmark_config, "swe_bench", [agent_template], dataset_items)
+    benchmark = Benchmark("swe_bench", benchmark_config, [agent_template], dataset_items)
 
     # Initialize LLM proxy with default config
     config = {
