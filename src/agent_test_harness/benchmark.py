@@ -26,8 +26,8 @@ class Benchmark:
                 run_name = file.split(".json")[0]
                 self.results[run_name] = json.load(f)
 
-    def run_name(self, agent: dict, instance: dict, iteration: int):
-        return f"{agent['name']}-{agent['version']}-{instance['name']}-{iteration}"
+    def run_name(self, agent: dict, instance, iteration: int):
+        return f"{agent['name']}-{agent['version']}-{instance.instance_id}-{iteration}"
 
     def add_result(self, run_name: str, result: dict):
         self.results[run_name] = result
