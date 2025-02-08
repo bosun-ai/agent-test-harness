@@ -16,18 +16,18 @@ class AgentTestHarness:
         self.llm_proxy = LLMProxy(config)
         self.llm_proxy.run()
         self.runs = config["runs"]
-        self.benchmark = Benchmark(config)
+        self.benchmark = Benchmark(config, "test_writing", config["agents"], config["repositories"])
 
     def benchmark_agents(self):
         while next_run := self.benchmark.next_run():
+            repository = next_run["instance"]
             try:
-                results = self.benchmark_agent(next_run["run_name"],next_run["agent"], next_run["repository"])
+                results = self.benchmark_agent(next_run["run_name"],next_run["agent"], repository)
                 self.benchmark.add_result(next_run["run_name"], results)
             except Exception as e:
-                logging.error(f"Error benchmarking agent {next_run['agent']['name']} on repository {next_run['repository']['name']}: {e}")
+                logging.error(f"Error benchmarking agent {next_run['agent']['name']} on repository {repository['name']}: {e}")
                 backtrace = traceback.format_exc()
                 agent = next_run["agent"]
-                repository = next_run["repository"]
                 error_result = {
                     "agent_name": agent["name"],
                     "agent_version": agent["version"],

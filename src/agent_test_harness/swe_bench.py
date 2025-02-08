@@ -9,6 +9,7 @@ from .agent_test_benchmark import AgentTestBenchmark
 from .llm_proxy import LLMProxy
 from .workspace_provider import WorkspaceProvider
 from .swe_bench_types import SWEBenchItem
+from .benchmark import Benchmark
 
 def cleanup_processes():
     """Kill any existing LLM proxy and workspace provider processes."""
@@ -47,14 +48,35 @@ def run_swe_bench():
     dataset = load_dataset('princeton-nlp/SWE-bench_Verified', split='test')
     logging.info(f"Total items in test split: {len(dataset)}\n")
     predictions = []
-    benchmark_results = []
     
     # Find nth item from a requests-related repository
     repo_name = "requests"
-    items = [item for item in dataset if repo_name in item["repo"].lower()]
+    raw_dataset_items = [item for item in dataset if repo_name in item["repo"].lower()]
 
     # TODO: Implement sorting based on instance_id
-    items.sort(key=lambda x: x["instance_id"])
+    raw_dataset_items.sort(key=lambda x: x["instance_id"])
+        
+    # Get agent template
+    agent_template_path = os.path.join(os.path.dirname(__file__), "templates", "agents", "kwaak.yaml")
+    with open(agent_template_path, "r") as f:
+        agent_template = yaml.safe_load(f)
+
+    benchmark_config = {
+            "results_path": os.path.join(os.path.dirname(__file__), "results"),
+            "runs": 1
+    }
+
+    dataset_items = []
+    for item in raw_dataset_items[:10]:
+        # Parse the JSON strings into lists
+        item["FAIL_TO_PASS"] = json.loads(item["FAIL_TO_PASS"])
+        item["PASS_TO_PASS"] = json.loads(item["PASS_TO_PASS"])
+
+        item = SWEBenchItem(**item)
+        dataset_items.append(item)
+
+
+    benchmark = Benchmark(benchmark_config, "swe_bench", [agent_template], dataset_items)
 
     # Initialize LLM proxy with default config
     config = {
@@ -69,22 +91,16 @@ def run_swe_bench():
     llm_proxy = LLMProxy(config)
     llm_proxy.run()
 
-    for item in items[:10]:
-        # Parse the JSON strings into lists
-        item["FAIL_TO_PASS"] = json.loads(item["FAIL_TO_PASS"])
-        item["PASS_TO_PASS"] = json.loads(item["PASS_TO_PASS"])
-        item = SWEBenchItem(**item)
+    while next_run := benchmark.next_run():
+        item = next_run["instance"]
+        run_name = next_run["run_name"]
+
         logging.info(f"Running benchmark for {item.instance_id} from repository {item.repo} version {item.version} at commit {item.base_commit}")
         logging.info(f"Expected failing tests: {item.FAIL_TO_PASS}")
         logging.info(f"Expected passing tests: {item.PASS_TO_PASS}")
         
         # Get repository template
         repository = get_repository_template(item.repo, item.version)
-        
-        # Get agent template
-        agent_template_path = os.path.join(os.path.dirname(__file__), "templates", "agents", "kwaak.yaml")
-        with open(agent_template_path, "r") as f:
-            agent_template = yaml.safe_load(f)
 
         # Configure workspace provider
         repo_setup_script = repository.get("setup_script", "")
@@ -99,29 +115,30 @@ def run_swe_bench():
         workspace_provider.run()
         
         # Run the benchmark
-        benchmark = AgentTestBenchmark(
+        benchmark_result = AgentTestBenchmark(
             name=item.instance_id,
             llm_proxy=llm_proxy,
             workspace_provider=workspace_provider,
             agent=agent_template,
             repository=repository,
             swebench_item=item
-        )
-        
-        benchmark_result = benchmark.run()
+        ).run()
+
+        benchmark_result["instance_id"] = item.instance_id
+
+        if "error" in result:
+            logging.error(f"running benchmark for {name}: {result['error']}")
+            continue
+        else:
+            benchmark.add_result(run_name, benchmark_result)
 
         workspace_provider.stop()
 
-        benchmark_results.append(benchmark_result)
-
-        if "error" in benchmark_result:
-            logging.error(f"Error running benchmark for {item.instance_id}: {benchmark_result['error']}")
-            continue
-
+    for name, result in benchmark.results.items():
         prediction = {
-            "instance_id": item.instance_id,
+            "instance_id": result["instance_id"],
             "model_name_or_path": f"{agent_template['name']}-{agent_template['version']}",
-            "model_patch": benchmark_result['git_diff'],
+            "model_patch": result['git_diff'],
         }
 
         predictions.append(prediction)
@@ -131,9 +148,9 @@ def run_swe_bench():
             f.write(json.dumps(prediction) + "\n")
 
     with open("swe_bench_results.json", "w") as f:
-        json.dump(benchmark_results, f)
+        json.dump(benchmark.results, f)
 
-    return benchmark_results
+    return benchmark.results
 
 if __name__ == "__main__":
     run_swe_bench()

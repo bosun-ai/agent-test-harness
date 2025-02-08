@@ -2,18 +2,20 @@ import os
 import json
 
 class Benchmark:
+    name: str
     agents: list[dict]
-    repositories: list[dict]
+    instances: list[dict]
     results: dict[str, dict]
     output_path: str
 
-    def __init__(self, config: dict):
+    def __init__(self, name: str, config: dict, agents: list[dict], instances: list[dict]):
+        self.name = name
         self.config = config
-        self.agents = config["agents"]
-        self.repositories = config["repositories"]
+        self.agents = agents
+        self.instances = instances
         self.results = {}
 
-        self.output_path = config["results_path"]
+        self.output_path = os.path.join(config["results_path"], name)
         os.makedirs(self.output_path, exist_ok=True)
         
         self.runs_path = os.path.join(self.output_path, "runs")
@@ -24,8 +26,8 @@ class Benchmark:
                 run_name = file.split(".json")[0]
                 self.results[run_name] = json.load(f)
 
-    def run_name(self, agent: dict, repository: dict, iteration: int):
-        return f"{agent['name']}-{agent['version']}-{repository['name']}-{iteration}"
+    def run_name(self, agent: dict, instance: dict, iteration: int):
+        return f"{agent['name']}-{agent['version']}-{instance['name']}-{iteration}"
 
     def add_result(self, run_name: str, result: dict):
         self.results[run_name] = result
@@ -34,14 +36,14 @@ class Benchmark:
 
     def next_run(self):
         for agent in self.agents:
-            for repository in self.repositories:
+            for instance in self.instances:
                 for iteration in range(self.config["runs"]):
-                    run_name = self.run_name(agent, repository, iteration)
+                    run_name = self.run_name(agent, instance, iteration)
                     if run_name not in self.results:
                         return {
                             "agent": agent,
                             "agent_version": agent["version"],
-                            "repository": repository,
+                            "instance": instance,
                             "run_name": run_name
                         }
         return None
