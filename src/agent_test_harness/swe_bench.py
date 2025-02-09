@@ -127,7 +127,7 @@ def run_swe_bench():
         benchmark_result["instance_id"] = item.instance_id
 
         if "error" in benchmark_result:
-            logging.error(f"running benchmark for {name}: {result['error']}")
+            logging.error(f"running benchmark for {item.instance_id}: {benchmark_result['error']}")
             continue
         else:
             benchmark.add_result(run_name, benchmark_result)
