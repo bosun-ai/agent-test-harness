@@ -80,7 +80,7 @@ def run_swe_bench():
     logging.info(f"Running benchmark with {benchmark_config['runs']} runs")
 
     dataset_items = []
-    for item in raw_dataset_items[:10]:
+    for item in raw_dataset_items:
         # Parse the JSON strings into lists
         item["FAIL_TO_PASS"] = json.loads(item["FAIL_TO_PASS"])
         item["PASS_TO_PASS"] = json.loads(item["PASS_TO_PASS"])
