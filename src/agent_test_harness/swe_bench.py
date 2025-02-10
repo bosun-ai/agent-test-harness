@@ -48,14 +48,23 @@ def run_swe_bench():
     dataset = load_dataset('princeton-nlp/SWE-bench_Verified', split='test')
     logging.info(f"Total items in test split: {len(dataset)}\n")
     predictions = []
-    
-    # Find nth item from a requests-related repository
-    repo_name = "requests"
-    raw_dataset_items = [item for item in dataset if repo_name in item["repo"].lower()]
 
-    # TODO: Implement sorting based on instance_id
-    raw_dataset_items.sort(key=lambda x: x["instance_id"])
-        
+    all_repos = list(set([item["repo"] for item in dataset]))
+
+    # Convert dataset to list and sort by instance_id
+    dataset_list = list(dataset)
+    dataset_list.sort(key=lambda x: x["instance_id"])
+
+    # Get the first 10 items for each repo from the dataset
+    raw_dataset_items = []
+    for repo in all_repos:
+        repo_items = [item for item in dataset_list if item["repo"] == repo]
+        raw_dataset_items.extend(repo_items[:10])
+
+    print(f"Total items for each repo: {len(raw_dataset_items)}\n")
+    # Print all instance_ids
+    print(f"Instance ids: {list(set([item['instance_id'] for item in raw_dataset_items]))}\n")
+
     # Get agent template
     agent_template_path = os.path.join(os.path.dirname(__file__), "templates", "agents", "kwaak.yaml")
     with open(agent_template_path, "r") as f:
@@ -157,8 +166,6 @@ def run_swe_bench():
 
     with open("swe_bench_results.json", "w") as f:
         json.dump(benchmark.results, f)
-
-    return benchmark.results
 
 if __name__ == "__main__":
     run_swe_bench()
