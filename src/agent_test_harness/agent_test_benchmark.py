@@ -186,8 +186,13 @@ class AgentTestBenchmark:
             self.results["swebench_success"] = True
 
         self.results["agent_execution_time"] = end_time - start_time
-        logging.info("Running git diff...")
-        self.results["git_diff"] = self.run_git_diff()
+
+        if easy_pass:
+            self.results["git_diff"] = "diff --git a/empty.txt b/empty.txt\nnew file mode 100644\n"
+        else:
+            logging.info("Running git diff...")
+            self.results["git_diff"] = self.run_git_diff()
+
         logging.info("Getting LLM metrics...")
         self.results["llm_metrics"] = self.get_llm_metrics()
 
