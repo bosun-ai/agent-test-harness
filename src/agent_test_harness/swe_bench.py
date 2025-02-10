@@ -126,13 +126,14 @@ def run_swe_bench():
 
         benchmark_result["instance_id"] = item.instance_id
 
+        workspace_provider.stop()
+
         if "error" in benchmark_result:
             logging.error(f"running benchmark for {item.instance_id}: {benchmark_result['error']}")
             continue
         else:
             benchmark.add_result(run_name, benchmark_result)
 
-        workspace_provider.stop()
 
     for name, result in benchmark.results.items():
         prediction = {
