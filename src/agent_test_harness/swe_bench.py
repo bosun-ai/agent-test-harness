@@ -61,10 +61,14 @@ def run_swe_bench():
     with open(agent_template_path, "r") as f:
         agent_template = yaml.safe_load(f)
 
+    # Configure benchmark, output path should be current working directory, not relative to the current file
     benchmark_config = {
-            "results_path": os.path.join(os.path.dirname(__file__), "results"),
+            "results_path": os.path.join(os.getcwd(), "results"),
             "runs": 1
     }
+
+    logging.info(f"Results path: {benchmark_config['results_path']}")
+    logging.info(f"Running benchmark with {benchmark_config['runs']} runs")
 
     dataset_items = []
     for item in raw_dataset_items[:10]:
@@ -95,7 +99,7 @@ def run_swe_bench():
         item = next_run["instance"]
         run_name = next_run["run_name"]
 
-        logging.info(f"Running benchmark for {item.instance_id} from repository {item.repo} version {item.version} at commit {item.base_commit}")
+        logging.info(f"Running benchmark {run_name} for {item.instance_id} from repository {item.repo} version {item.version} at commit {item.base_commit}")
         logging.info(f"Expected failing tests: {item.FAIL_TO_PASS}")
         logging.info(f"Expected passing tests: {item.PASS_TO_PASS}")
         
@@ -129,7 +133,7 @@ def run_swe_bench():
         workspace_provider.stop()
 
         if "error" in benchmark_result:
-            logging.error(f"running benchmark for {item.instance_id}: {benchmark_result['error']}")
+            logging.error(f"Error running benchmark {run_name} for {item.instance_id}: {benchmark_result['error']}")
 
         benchmark.add_result(run_name, benchmark_result)
 
@@ -142,6 +146,7 @@ def run_swe_bench():
             "instance_id": result["instance_id"],
             "model_name_or_path": f"{agent_template['name']}-{agent_template['version']}",
             "model_patch": result['git_diff'],
+            "run_name": name
         }
 
         predictions.append(prediction)
